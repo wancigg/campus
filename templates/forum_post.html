@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} - 论坛 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 面包屑 -->
+    <div class="flex items-center text-sm text-gray-400 mb-6" data-animate="fade-in">
+        <a href="{{ url_for('forum.index') }}" class="hover:text-purple-600 transition-colors">论坛</a><span class="mx-2">/</span>
+        <a href="{{ url_for('forum.category', cat_id=post.category_id) }}" class="hover:text-purple-600 transition-colors">{{ post.category.name }}</a><span class="mx-2">/</span>
+        <span class="text-gray-600 truncate max-w-[300px]">{{ post.title }}</span>
+    </div>
+
+    <!-- 主帖 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6" data-animate="fade-up" data-animate-duration="500">
+        <h1 class="text-2xl font-bold text-gray-900">{{ post.title }}</h1>
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500 pb-4 border-b border-gray-100">
+            <div class="flex items-center space-x-1.5">
+                <div class="w-7 h-7 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">{{ post.author.username[0].upper() }}</div>
+                <span class="font-medium text-gray-700">{{ post.author.username }}</span>
+            </div>
+            <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ post.views }}</span>
+            <span>{{ post.comment_count }} 回复</span>
+        </div>
+
+        <!-- 帖子图片 -->
+        {% if post.images.count() > 0 %}
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {% for img in post.images %}
+            <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer group" onclick="openPreview('/uploads/{{ img.filename }}')">
+                <img src="{{ url_for('uploaded_file', key=img.filename) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" alt="帖子图片">
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="prose max-w-none mt-4 text-gray-700 leading-relaxed whitespace-pre-wrap">{{ post.content }}</div>
+        {% if current_user.is_authenticated and post.user_id == current_user.id %}
+        <form method="POST" action="{{ url_for('forum.delete_post', id=post.id) }}" onsubmit="return confirm('确定删除该帖子？此操作不可恢复，回复也会一并清除。');" class="mt-4">
+            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-red-200 text-red-500 text-sm font-medium rounded-lg hover:bg-red-50 transition-all duration-200 hover:shadow-sm">删除帖子</button>
+        </form>
+        {% endif %}
+        <div class="mt-4 flex items-center space-x-4">
+            <button onclick="toggleLike({{ post.id }})" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg {% if user_liked %}bg-red-50 text-red-500{% else %}bg-gray-50 text-gray-500{% endif %} hover:bg-red-50 hover:text-red-500 transition-all duration-200 text-sm active:scale-95">
+                <svg class="w-4 h-4" fill="{% if user_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                <span id="like-count-{{ post.id }}">{{ post.like_count }}</span>
+            </button>
+            <button onclick="toggleFavorite({{ post.id }})" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg {% if user_favorited %}bg-yellow-50 text-yellow-500{% else %}bg-gray-50 text-gray-500{% endif %} hover:bg-yellow-50 hover:text-yellow-500 transition-all duration-200 text-sm active:scale-95">
+                <svg class="w-4 h-4" fill="{% if user_favorited %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span id="fav-text-{{ post.id }}">{% if user_favorited %}已收藏{% else %}收藏{% endif %}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 回复区 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" data-animate="fade-up" data-animate-delay="100">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">回复 ({{ post.comment_count }})</h2>
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('forum.comment', id=post.id) }}" class="mb-6">
+            <textarea name="content" rows="3" required placeholder="写下你的回复..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm transition-all duration-200"></textarea>
+            <button type="submit" class="mt-2 px-5 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 hover:shadow-md transition-all duration-200 active:scale-[0.97]">发表回复</button>
+        </form>
+        {% endif %}
+
+        <div class="space-y-4">
+            {% for c in post.comments %}
+            <div class="flex space-x-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0 content-item">
+                <div class="w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{ c.author.username[0].upper() }}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-700">{{ c.author.username }}</span>
+                        <span class="text-xs text-gray-400">{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{{ c.content }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-400 py-4">暂无回复，来发表第一条吧！</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- 图片预览遮罩层 -->
+<div id="imgModal" class="hidden fixed inset-0 z-50 bg-black/90 items-center justify-center" onclick="closePreview()">
+    <button onclick="closePreview()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white bg-white/10 rounded-full transition-colors z-10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <img id="modalImg" src="" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" onclick="event.stopPropagation()" alt="图片预览">
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 图片预览
+function openPreview(src) {
+    var modal = document.getElementById('imgModal');
+    document.getElementById('modalImg').src = src;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closePreview() {
+    var modal = document.getElementById('imgModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePreview(); });
+
+// 点赞
+function toggleLike(id) {
+    var btn = event.target.closest('button');
+    fetch('{{ url_for("forum.like", id=post.id) }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            document.getElementById('like-count-' + id).textContent = d.count;
+            if (btn) {
+                btn.classList.add('badge-pop');
+                setTimeout(function() { btn.classList.remove('badge-pop'); }, 400);
+            }
+        });
+}
+
+// 收藏
+function toggleFavorite(id) {
+    var btn = event.target.closest('button');
+    fetch('{{ url_for("forum.favorite", id=post.id) }}', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            document.getElementById('fav-text-' + id).textContent = d.status === 'favorited' ? '已收藏' : '收藏';
+            if (btn) {
+                btn.classList.add('badge-pop');
+                setTimeout(function() { btn.classList.remove('badge-pop'); }, 400);
+            }
+        });
+}
+</script>
+{% endblock %}

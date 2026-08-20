@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} - 群聊 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-8rem)] flex animate-slide-up">
+    <!-- 聊天主区域 -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- 群聊头部 -->
+        <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3 mb-3">
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('chat.list') }}" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                <div class="w-9 h-9 bg-gradient-to-br from-green-400 to-teal-400 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div>
+                    <h2 class="font-semibold text-gray-900 text-sm">{{ group.name }}</h2>
+                    <p class="text-xs text-gray-400">{{ members|length }} 人</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息区域 -->
+        <div id="msgContainer" class="flex-1 overflow-y-auto space-y-3 px-1 py-2 scroll-smooth">
+            <div id="msgEnd" class="h-1"></div>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mt-3">
+            <form id="msgForm" class="flex items-end space-x-2">
+                <textarea id="msgInput" rows="1" placeholder="输入群聊消息..." class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none text-sm" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+                <button type="submit" class="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-green-500 to-teal-500 text-white font-medium rounded-xl hover:shadow-lg transition-all text-sm disabled:opacity-50" id="sendBtn">发送</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 成员侧边栏 -->
+    <div class="hidden lg:block w-56 ml-4 flex-shrink-0">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-20">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">群成员 ({{ members|length }})</h3>
+            <div class="space-y-2 max-h-80 overflow-y-auto">
+                {% for m in members %}
+                <div class="flex items-center space-x-2 text-sm">
+                    {% if m.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=m.avatar) }}" class="w-6 h-6 rounded-full object-cover">
+                    {% else %}
+                    <div class="w-6 h-6 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold">{{ m.username[0].upper() }}</div>
+                    {% endif %}
+                    <span class="text-gray-700 truncate">{{ m.username }}</span>
+                    {% if m.id == group.created_by %}<span class="text-xs text-green-500 font-medium">群主</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 邀请好友 -->
+            {% if friends_not_in_group %}
+            <div class="mt-4 pt-3 border-t border-gray-100">
+                <h4 class="text-xs font-semibold text-gray-500 mb-2">邀请好友</h4>
+                <form method="POST" action="{{ url_for('chat.group_invite', group_id=group.id) }}" class="flex space-x-1">
+                    <select name="user_id" class="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-green-500 outline-none">
+                        {% for f in friends_not_in_group %}
+                        <option value="{{ f.id }}">{{ f.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors">邀请</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- 退出群聊 -->
+            <div class="mt-3 pt-3 border-t border-gray-100">
+                <form method="POST" action="{{ url_for('chat.group_leave', group_id=group.id) }}" onsubmit="return confirm('确定退出该群聊？');">
+                    <button type="submit" class="w-full py-1.5 text-xs text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">退出群聊</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var groupId = {{ group.id }};
+var lastMsgId = 0;
+var container = document.getElementById('msgContainer');
+
+function renderMsg(msg) {
+    var div = document.createElement('div');
+    div.className = 'flex ' + (msg.is_self ? 'justify-end' : 'justify-start');
+    div.innerHTML =
+        '<div class="max-w-[70%]">' +
+        (!msg.is_self ? '<span class="text-xs text-gray-400 ml-1 font-medium">' + msg.sender_name + '</span>' : '') +
+        '<div class="mt-0.5 px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ' +
+            (msg.is_self
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-md'
+                : 'bg-gray-100 text-gray-800 rounded-bl-md') +
+        '">' + escapeHtml(msg.content) + '</div>' +
+        '<div class="text-xs text-gray-400 mt-0.5 ' + (msg.is_self ? 'text-right mr-1' : 'ml-1') + '">' + msg.created_at + '</div>' +
+        '</div>';
+    return div;
+}
+
+function escapeHtml(text) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(text));
+    return d.innerHTML;
+}
+
+function scrollToBottom() {
+    var end = document.getElementById('msgEnd');
+    if (end) end.scrollIntoView({behavior: 'smooth'});
+}
+
+function loadMessages(lastId) {
+    var url = '/chat/group/' + groupId + '/messages';
+    if (lastId) url += '?last_id=' + lastId;
+    fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.messages && data.messages.length > 0) {
+            data.messages.forEach(function(msg) {
+                var el = renderMsg(msg);
+                container.insertBefore(el, document.getElementById('msgEnd'));
+                lastMsgId = Math.max(lastMsgId, msg.id);
+            });
+            scrollToBottom();
+        }
+    });
+}
+
+function sendMessage() {
+    var input = document.getElementById('msgInput');
+    var text = input.value.trim();
+    if (!text) return;
+    var btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    fetch('/chat/group/' + groupId + '/send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: text})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.ok) {
+            var el = renderMsg(data.message);
+            container.insertBefore(el, document.getElementById('msgEnd'));
+            scrollToBottom();
+            input.value = '';
+            input.style.height = 'auto';
+            lastMsgId = Math.max(lastMsgId, data.message.id);
+        }
+    }).finally(function() {
+        btn.disabled = false;
+        input.focus();
+    });
+}
+
+document.getElementById('msgForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendMessage();
+});
+
+loadMessages();
+setInterval(function() { loadMessages(lastMsgId); }, 3000);
+</script>
+{% endblock %}

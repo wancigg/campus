@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}学习资料 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 头部 -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">学习资料</h1>
+                <p class="text-gray-500 text-sm mt-0.5">浏览、搜索和下载优质学习资料</p>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('materials.upload') }}" class="mt-4 sm:mt-0 inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md active:scale-[0.98] gap-2" data-ripple>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            上传资料
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 搜索与筛选 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6" data-animate="fade-up" data-animate-delay="80">
+        <form class="flex flex-col sm:flex-row gap-3" method="GET">
+            <div class="flex-1 relative search-wrapper">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" name="q" value="{{ keyword }}" placeholder="搜索资料名称..."
+                    class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none search-input">
+            </div>
+            <select name="category" class="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 transition-all duration-200">
+                <option value="">全部分类</option>
+                <option value="课件" {% if category == '课件' %}selected{% endif %}>课件</option>
+                <option value="试题" {% if category == '试题' %}selected{% endif %}>试题</option>
+                <option value="笔记" {% if category == '笔记' %}selected{% endif %}>笔记</option>
+                <option value="其他" {% if category == '其他' %}selected{% endif %}>其他</option>
+            </select>
+            <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 hover:shadow-md active:scale-[0.97]">搜索</button>
+        </form>
+    </div>
+
+    <!-- 资料列表 -->
+    {% if materials %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" data-animate-stagger="60">
+        {% for m in materials %}
+        <a href="{{ url_for('materials.detail', id=m.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover-glow">
+            <div class="h-40 bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-t from-blue-100/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {% if m.file_type == 'pdf' %}
+                <svg class="w-16 h-16 text-red-400 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-1.5v2H13V7h1.5c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+                {% elif m.file_type == 'image' %}
+                <svg class="w-16 h-16 text-green-400 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                {% elif m.file_type == 'word' %}
+                <svg class="w-16 h-16 text-blue-400 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm7 1.5V9h5.5L13 3.5zM7 13l1.5 4h1.2L11 13h1.2l-1.8 5h-1.3L7 13z"/></svg>
+                {% else %}
+                <svg class="w-16 h-16 text-gray-400 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                {% endif %}
+            </div>
+            <div class="p-4">
+                <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">{{ m.title }}</h3>
+                <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span class="flex items-center">
+                        <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ m.views }}
+                    </span>
+                    <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{{ m.category }}</span>
+                </div>
+                <div class="mt-2 flex items-center text-xs text-gray-400">
+                    <span>{{ m.author.username }}</span>
+                    <span class="mx-1.5">·</span>
+                    <span>{{ m.created_at.strftime('%m-%d') }}</span>
+                    {% if m.avg_rating > 0 %}
+                    <span class="ml-auto text-yellow-500">★ {{ m.avg_rating }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- 分页 -->
+    {% if pagination.pages > 1 %}
+    <div class="mt-8 flex justify-center" data-animate="fade-up" data-animate-delay="200">
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}
+            <a href="?page={{ pagination.prev_num }}&q={{ keyword }}&category={{ category }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">上一页</a>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <a href="?page={{ p }}&q={{ keyword }}&category={{ category }}" class="px-4 py-2 {% if p == pagination.page %}bg-blue-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-700 hover:bg-gray-50{% endif %} rounded-lg text-sm transition-all duration-200 hover:-translate-y-0.5">{{ p }}</a>
+            {% else %}
+            <span class="px-2 py-2 text-gray-400">...</span>
+            {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next_num }}&q={{ keyword }}&category={{ category }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">下一页</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-20" data-animate="scale-in">
+        <div class="empty-state-float">
+            <svg class="w-20 h-20 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+        </div>
+        <p class="mt-4 text-gray-500 text-lg">暂无学习资料</p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('materials.upload') }}" class="mt-4 inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            上传第一份资料
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

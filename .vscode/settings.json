@@ -1,0 +1,9 @@
+{
+  "python.languageServer": "Pylance",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/.venv/Lib/site-packages"
+  ],
+  "python.analysis.typeCheckingMode": "basic",
+  "basedpyright.disableLanguageServices": true
+}

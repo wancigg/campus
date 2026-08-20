@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}二手闲置 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">二手闲置</h1>
+                <p class="text-gray-500 text-sm mt-0.5">盘活校园闲置物品，循环利用更环保</p>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('textbook.create') }}" class="mt-4 sm:mt-0 inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-teal-500 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md active:scale-[0.98] gap-2" data-ripple>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>发布闲置
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 搜索框 -->
+    <form class="mb-6" method="GET" data-animate="fade-up" data-animate-delay="60">
+        <div class="relative max-w-lg search-wrapper">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" name="q" value="{{ keyword }}" placeholder="搜索物品名称或品牌..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none search-input transition-all duration-200">
+        </div>
+    </form>
+
+    <!-- 分类标签 -->
+    <div class="flex flex-wrap gap-2 mb-8" data-animate="fade-up" data-animate-delay="80">
+        <a href="{{ url_for('textbook.list') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 {% if not current_cat %}bg-green-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>全部
+        </a>
+        {% for c in categories %}
+        <a href="{{ url_for('textbook.list', cat=c) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 {% if current_cat == c %}bg-green-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            {% if c == '书籍' %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+            {% elif c == '数码产品' %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            {% elif c == '服饰鞋包' %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3h14l1 9-4 4H8l-4-4 1-9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v5m0 0l-3 7h6l-3-7z"/></svg>
+            {% elif c == '生活用品' %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1"/></svg>
+            {% elif c == '运动器材' %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% else %}<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0z"/></svg>{% endif %}
+            {{ c }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if textbooks %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" data-animate-stagger="60">
+        {% for t in textbooks %}
+        <a href="{{ url_for('textbook.detail', id=t.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover-glow">
+            <div class="h-44 bg-gradient-to-br from-green-50 to-teal-50 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-t from-green-100/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span class="absolute top-3 left-3 px-2 py-0.5 text-xs rounded-full bg-green-600 text-white font-medium shadow-sm">{{ t.category }}</span>
+                {% if t.cover_image %}
+                <img src="{{ url_for('uploaded_file', key=t.cover_image) }}" class="max-h-full object-contain group-hover:scale-105 transition-transform duration-300" alt="{{ t.title }}" onerror="this.parentElement.innerHTML='<span class=\'text-gray-400 text-sm\'>{{ t.title }}</span>'">
+                {% else %}
+                <svg class="w-16 h-16 text-green-300 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                {% endif %}
+            </div>
+            <div class="p-4">
+                <h3 class="font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-200 line-clamp-1">{{ t.title }}</h3>
+                <p class="text-xs text-gray-500 mt-1">{{ t.author or (t.category + '闲置') }}</p>
+                <div class="mt-2 flex items-center justify-between">
+                    <span class="text-lg font-bold text-green-600">¥{{ t.price }}</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full transition-colors {% if t.trade_status=='available' %}bg-green-50 text-green-600{% elif t.trade_status=='reserved' %}bg-yellow-50 text-yellow-600{% else %}bg-gray-50 text-gray-400{% endif %}">
+                        {% if t.trade_status=='available' %}在售{% elif t.trade_status=='reserved' %}已预定{% else %}已售出{% endif %}
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="mt-8 flex justify-center" data-animate="fade-up" data-animate-delay="200">
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}&q={{ keyword }}&cat={{ current_cat }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">上一页</a>{% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}<a href="?page={{ p }}&q={{ keyword }}&cat={{ current_cat }}" class="px-4 py-2 {% if p==pagination.page %}bg-green-600 text-white shadow-md{% else %}bg-white border{% endif %} rounded-lg text-sm transition-all duration-200 hover:-translate-y-0.5">{{ p }}</a>{% else %}<span class="px-2 py-2 text-gray-400">...</span>{% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}&q={{ keyword }}&cat={{ current_cat }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">下一页</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-20" data-animate="scale-in">
+        <div class="empty-state-float">
+            <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
+        <p class="mt-4 text-gray-500">暂无闲置物品</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

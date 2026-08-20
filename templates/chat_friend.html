@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}与 {{ partner.username }} 聊天 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-8rem)] flex flex-col animate-slide-up">
+    <!-- 头部 -->
+    <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3 mb-3">
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('chat.list') }}" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </a>
+            {% if partner.avatar %}
+            <img src="{{ url_for('uploaded_file', key=partner.avatar) }}" class="w-9 h-9 rounded-full object-cover">
+            {% else %}
+            <div class="w-9 h-9 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-sm font-bold">{{ partner.username[0].upper() }}</div>
+            {% endif %}
+            <div>
+                <h2 class="font-semibold text-gray-900 text-sm">{{ partner.username }}</h2>
+            </div>
+        </div>
+        <!-- 好友切换下拉 -->
+        <div class="relative group">
+            <button class="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:bg-gray-100 transition-colors">
+                <span>切换好友</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 max-h-64 overflow-y-auto">
+                {% for f in friends %}
+                {% if f.id != partner.id %}
+                <a href="{{ url_for('chat.friend_chat', user_id=f.id) }}" class="flex items-center px-3 py-2 hover:bg-gray-50 text-sm">
+                    {% if f.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=f.avatar) }}" class="w-6 h-6 rounded-full object-cover mr-2">
+                    {% else %}
+                    <div class="w-6 h-6 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold mr-2">{{ f.username[0].upper() }}</div>
+                    {% endif %}
+                    <span class="text-gray-700 truncate">{{ f.username }}</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息区域 -->
+    <div id="msgContainer" class="flex-1 overflow-y-auto space-y-3 px-1 py-2 scroll-smooth">
+        <div id="msgEnd" class="h-1"></div>
+    </div>
+
+    <!-- 输入区 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mt-3">
+        <form id="msgForm" class="flex items-end space-x-2">
+            <textarea id="msgInput" rows="1" placeholder="输入消息..." class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+            <button type="submit" class="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium rounded-xl hover:shadow-lg transition-all text-sm disabled:opacity-50" id="sendBtn">发送</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var partnerId = {{ partner.id }};
+var lastMsgId = 0;
+var container = document.getElementById('msgContainer');
+
+// 渲染单条消息
+function renderMsg(msg) {
+    var div = document.createElement('div');
+    div.className = 'flex ' + (msg.is_self ? 'justify-end' : 'justify-start');
+    div.innerHTML =
+        '<div class="max-w-[75%]">' +
+        (!msg.is_self ? '<span class="text-xs text-gray-400 ml-1">' + msg.sender_name + '</span>' : '') +
+        '<div class="mt-0.5 px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ' +
+            (msg.is_self
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-md'
+                : 'bg-gray-100 text-gray-800 rounded-bl-md') +
+        '">' + escapeHtml(msg.content) + '</div>' +
+        '<div class="text-xs text-gray-400 mt-0.5 ' + (msg.is_self ? 'text-right mr-1' : 'ml-1') + '">' + msg.created_at + '</div>' +
+        '</div>';
+    return div;
+}
+
+function escapeHtml(text) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(text));
+    return d.innerHTML;
+}
+
+function scrollToBottom() {
+    var end = document.getElementById('msgEnd');
+    if (end) end.scrollIntoView({behavior: 'smooth'});
+}
+
+// 加载历史消息
+function loadMessages(lastId) {
+    var url = '/chat/friend/' + partnerId + '/messages';
+    if (lastId) url += '?last_id=' + lastId;
+    fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.messages && data.messages.length > 0) {
+            data.messages.forEach(function(msg) {
+                var el = renderMsg(msg);
+                container.insertBefore(el, document.getElementById('msgEnd'));
+                lastMsgId = Math.max(lastMsgId, msg.id);
+            });
+            scrollToBottom();
+        }
+    });
+}
+
+// 发送消息
+function sendMessage() {
+    var input = document.getElementById('msgInput');
+    var text = input.value.trim();
+    if (!text) return;
+    var btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    fetch('/chat/friend/' + partnerId + '/send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: text})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.ok) {
+            var el = renderMsg(data.message);
+            container.insertBefore(el, document.getElementById('msgEnd'));
+            scrollToBottom();
+            input.value = '';
+            input.style.height = 'auto';
+            lastMsgId = Math.max(lastMsgId, data.message.id);
+        }
+    }).finally(function() {
+        btn.disabled = false;
+        input.focus();
+    });
+}
+
+document.getElementById('msgForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendMessage();
+});
+
+// 初始加载
+loadMessages();
+// 每 3 秒轮询新消息
+setInterval(function() { loadMessages(lastMsgId); }, 3000);
+</script>
+{% endblock %}

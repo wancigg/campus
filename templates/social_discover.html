@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}发现好友 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 页面标题 -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">发现好友</h1>
+            <p class="text-sm text-gray-400 mt-1">搜索其他用户并添加好友</p>
+        </div>
+        <a href="{{ url_for('social.friend_list') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            返回好友列表
+        </a>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
+        <form action="{{ url_for('social.discover') }}" method="GET" class="flex gap-3">
+            <div class="flex-1 relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" name="q" value="{{ q }}" placeholder="输入用户名搜索…" autofocus
+                       class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition-all">
+            </div>
+            <button type="submit" class="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-lg transition-all">
+                搜索
+            </button>
+        </form>
+    </div>
+
+    <!-- 搜索结果 -->
+    {% if q %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 border-b border-gray-100">
+            <p class="text-sm text-gray-500">搜索 "<span class="font-semibold text-gray-700">{{ q }}</span>" 的结果：<span class="font-bold text-blue-600">{{ users|length }}</span> 个用户</p>
+        </div>
+        <div class="p-4 sm:p-6">
+            {% if users %}
+            <div class="divide-y divide-gray-50">
+                {% for u in users %}
+                <div class="flex items-center gap-4 py-4 first:pt-0 last:pb-0 group">
+                    {% if u.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=u.avatar) }}" alt="{{ u.username }}" class="w-12 h-12 rounded-full object-cover shadow-sm flex-shrink-0">
+                    {% else %}
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-sm flex-shrink-0">{{ u.username[0].upper() }}</div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-bold text-gray-800">{{ u.username }}</h3>
+                        <p class="text-xs text-gray-400 line-clamp-1">{{ u.bio or '对方还没有简介' }}</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% set status = current_user.get_friend_request_status(u.id) %}
+                        {% if status == 'accepted' %}
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-full">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                已是好友
+                            </span>
+                            <a href="{{ url_for('chat.friend_chat', user_id=u.id) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-md transition-all">
+                                发消息
+                            </a>
+                        </div>
+                        {% elif status == 'pending_sent' %}
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 rounded-full">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            已发送申请
+                        </span>
+                        {% elif status == 'pending_received' %}
+                        <form action="{{ url_for('social.accept_request_from_user', user_id=u.id) }}" method="POST">
+                            <button type="submit" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-green-500 to-teal-500 rounded-xl hover:shadow-md transition-all">
+                                接受好友申请
+                            </button>
+                        </form>
+                        {% elif status == 'rejected' %}
+                        <form action="{{ url_for('social.send_request', user_id=u.id) }}" method="POST">
+                            <button type="submit" class="px-4 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all">
+                                重新申请
+                            </button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('social.send_request', user_id=u.id) }}" method="POST" onsubmit="return confirmAddFriend('{{ u.username }}')">
+                            <button type="submit" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-md transition-all flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                添加好友
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <p class="text-base font-medium">未找到相关用户</p>
+                <p class="text-sm mt-1">试试用其他关键词搜索</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- 空状态：引导搜索 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full flex items-center justify-center mb-5">
+                <svg class="w-12 h-12 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <p class="text-lg font-semibold text-gray-500">发现新朋友</p>
+            <p class="text-sm mt-1">输入用户名，搜索并添加好友</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmAddFriend(username) {
+    return confirm('确定要添加 ' + username + ' 为好友吗？');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }} 的资料 - 校桥{% endblock %}
+
+{% block head %}
+<style>
+    .content-item:hover { background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%); border-color: #93c5fd; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========== 用户信息头部卡片 ========== -->
+    <div class="relative overflow-hidden bg-white rounded-3xl shadow-lg border border-gray-100" data-animate="fade-up" data-animate-duration="600">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+        <div class="relative p-6 sm:p-8 lg:p-10">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                <!-- 头像 -->
+                <div class="relative flex-shrink-0">
+                    {% if user.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=user.avatar) }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover shadow-2xl">
+                    {% else %}
+                    <div class="w-28 h-28 bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-400 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-2xl">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    {% endif %}
+                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-400 border-4 border-white rounded-full shadow-sm"></div>
+                </div>
+
+                <!-- 用户信息 -->
+                <div class="flex-1 text-center sm:text-left">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{{ user.username }}</h1>
+                        {% if user.is_admin() %}
+                        <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-red-50 to-orange-50 text-red-600 text-xs font-bold rounded-full border border-red-200 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            管理员
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ user.created_at.strftime('%Y年%m月%d日') }} 加入
+                        </span>
+                    </div>
+
+                    <!-- 个人简介 -->
+                    {% if user.bio %}
+                    <p class="text-gray-600 text-sm leading-relaxed bg-gradient-to-r from-blue-50/50 to-cyan-50/50 rounded-xl px-4 py-3 border border-blue-100/50">
+                        <span class="text-blue-500 mr-1">"</span>{{ user.bio }}<span class="text-blue-500 ml-1">"</span>
+                    </p>
+                    {% else %}
+                    <p class="text-gray-400 text-sm italic bg-gray-50 rounded-xl px-4 py-3 border border-dashed border-gray-200">
+                        对方还没有填写个人简介
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- 好友操作按钮 -->
+                {% if current_user.is_authenticated and current_user.id != user.id %}
+                <div class="flex-shrink-0 self-start">
+                    {% if friend_status == 'accepted' %}
+                    <span class="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-green-600 bg-green-50 rounded-xl border border-green-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        已是好友
+                    </span>
+                    <a href="{{ url_for('chat.friend_chat', user_id=user.id) }}" class="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        发送消息
+                    </a>
+                    {% elif friend_status == 'pending_sent' %}
+                    <span class="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-orange-600 bg-orange-50 rounded-xl border border-orange-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        已发送申请
+                    </span>
+                    {% elif friend_status == 'pending_received' %}
+                    <form action="{{ url_for('social.accept_request_from_user', user_id=user.id) }}" method="POST">
+                        <button type="submit" class="w-full inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-green-500 to-teal-500 rounded-xl hover:shadow-lg transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            接受好友申请
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('social.send_request', user_id=user.id) }}" method="POST" onsubmit="return confirm('确定添加 {{ user.username }} 为好友吗？')">
+                        <button type="submit" class="w-full inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-lg hover:scale-105 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            添加好友
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if friend_status == 'accepted' %}
+                    <form action="{{ url_for('social.remove_friend', user_id=user.id) }}" method="POST" class="mt-2" onsubmit="return confirm('确定删除 {{ user.username }} 吗？')">
+                        <button type="submit" class="w-full px-5 py-1.5 text-xs font-medium text-gray-400 hover:text-red-500 transition-colors">
+                            删除好友
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 统计卡片 ========== -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6" data-animate-stagger="80">
+        <div class="stagger-item stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 {% if tab == 'posts' %}border-blue-400{% else %}border-transparent{% endif %} shadow-sm cursor-pointer" onclick="switchTab('posts')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-blue-600">{{ post_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">论坛帖子</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 {% if tab == 'materials' %}border-purple-400{% else %}border-transparent{% endif %} shadow-sm cursor-pointer stagger-item" onclick="switchTab('materials')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-purple-600">{{ material_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">学习资料</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 {% if tab == 'textbooks' %}border-green-400{% else %}border-transparent{% endif %} shadow-sm cursor-pointer stagger-item" onclick="switchTab('textbooks')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-green-600">{{ textbook_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">二手闲置</p>
+        </div>
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm stagger-item">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-pink-600">{{ friend_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">好友</p>
+        </div>
+    </div>
+
+    <!-- ========== Tab 导航 ========== -->
+    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="flex border-b border-gray-100 overflow-x-auto">
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold {% if tab == 'posts' %}text-blue-600 bg-blue-50/30{% else %}text-gray-500 hover:text-blue-600 hover:bg-gray-50{% endif %} transition-all"
+                    onclick="switchTab('posts')">
+                <span class="flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>帖子</span>
+            </button>
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold {% if tab == 'materials' %}text-purple-600 bg-purple-50/30{% else %}text-gray-500 hover:text-purple-600 hover:bg-gray-50{% endif %} transition-all"
+                    onclick="switchTab('materials')">
+                <span class="flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>资料</span>
+            </button>
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold {% if tab == 'textbooks' %}text-green-600 bg-green-50/30{% else %}text-gray-500 hover:text-green-600 hover:bg-gray-50{% endif %} transition-all"
+                    onclick="switchTab('textbooks')">
+                <span class="flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>闲置</span>
+            </button>
+        </div>
+
+        <div class="p-4 sm:p-6 min-h-[300px]">
+            {% if items %}
+            <div class="space-y-3">
+                {% for item in items %}
+                    {% if tab == 'posts' %}
+                    <a href="{{ url_for('forum.post', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white group/post">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center group-hover/post:bg-blue-100 transition-colors">
+                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/post:text-blue-600 transition-colors line-clamp-1">
+                                {% if item.is_pinned %}<span class="text-red-500 mr-1">[置顶]</span>{% endif %}{{ item.title }}
+                            </h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.content[:100] }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span>👁 {{ item.views }}</span>
+                                <span>💬 {{ item.comment_count }}</span>
+                                <span>❤ {{ item.like_count }}</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% elif tab == 'materials' %}
+                    <a href="{{ url_for('materials.detail', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white group/mat">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center group-hover/mat:bg-purple-100 transition-colors
+                                {% if item.file_type == 'pdf' %}bg-red-50{% elif item.file_type == 'doc' %}bg-blue-50{% elif item.file_type == 'ppt' %}bg-orange-50{% else %}bg-purple-50{% endif %}">
+                                <span class="text-xs font-bold {% if item.file_type == 'pdf' %}text-red-500{% elif item.file_type == 'doc' %}text-blue-500{% elif item.file_type == 'ppt' %}text-orange-500{% else %}text-purple-500{% endif %}">
+                                    {{ item.file_type.upper() if item.file_type else 'FILE' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/mat:text-purple-600 transition-colors line-clamp-1">{{ item.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.description or '暂无描述' }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="px-2 py-0.5 bg-gray-100 rounded-full text-xs">{{ item.category }}</span>
+                                <span>👁 {{ item.views }}</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('textbook.detail', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white group/tb">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center group-hover/tb:bg-green-100 transition-colors">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/tb:text-green-600 transition-colors line-clamp-1">{{ item.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.description or '暂无描述' }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="font-bold text-green-600">¥{{ "%.2f"|format(item.price) }}</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if pagination and pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-2 mt-6 flex-wrap">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('auth.profile_view', user_id=user.id, tab=tab, page=pagination.prev_num) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">上一页</a>
+                {% endif %}
+                {% for p in range(1, pagination.pages + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="px-3 py-1.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-sm">{{ p }}</span>
+                    {% elif p <= 3 or p > pagination.pages - 3 or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
+                    <a href="{{ url_for('auth.profile_view', user_id=user.id, tab=tab, page=p) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">{{ p }}</a>
+                    {% elif p == 4 or p == pagination.pages - 3 %}
+                    <span class="px-2 text-gray-400">...</span>
+                    {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('auth.profile_view', user_id=user.id, tab=tab, page=pagination.next_num) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">下一页</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    {% if tab == 'posts' %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                    {% elif tab == 'materials' %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    {% else %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    {% endif %}
+                </div>
+                <p class="text-base font-medium">暂无内容</p>
+                <p class="text-sm mt-1">该用户还没有发布过{% if tab == 'posts' %}帖子{% elif tab == 'materials' %}学习资料{% else %}闲置物品{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchTab(tab) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tab);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}

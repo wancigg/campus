@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}校园论坛 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 头部 -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">校园论坛</h1>
+                <p class="text-gray-500 text-sm mt-0.5">选择板块，参与讨论</p>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('forum.create') }}" class="mt-4 sm:mt-0 inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md active:scale-[0.98] gap-2" data-ripple>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            发布帖子
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 分区卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger="80">
+        {% for cat in categories %}
+        <a href="{{ url_for('forum.category', cat_id=cat.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover:border-purple-200" data-tilt data-tilt-max="4">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300 border border-purple-100/50">
+                    {{ cat.icon or '💬' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors duration-200">{{ cat.name }}</h3>
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ cat.description or '精彩讨论，尽在此板块' }}</p>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs">
+                <span class="flex items-center gap-1 text-gray-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <span>{{ cat.posts.count() }} 个帖子</span>
+                </span>
+                <span class="text-purple-500 font-medium group-hover:gap-1.5 transition-all duration-200 inline-flex items-center gap-1">进入板块 <span>→</span></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

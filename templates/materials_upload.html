@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}上传资料 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-slide-up">
+    <h1 class="text-2xl font-bold text-gray-900 mb-8">上传学习资料</h1>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">资料标题 *</label>
+                <input type="text" name="title" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">分类 *</label>
+                <select name="category" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">请选择分类</option>
+                    <option value="课件">课件</option>
+                    <option value="试题">试题</option>
+                    <option value="笔记">笔记</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">描述</label>
+                <textarea name="description" rows="4" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none" placeholder="简要描述这份资料的内容..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">上传文件 *</label>
+                <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="drop-zone">
+                    <svg class="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <p class="mt-3 text-sm text-gray-500">拖拽文件到这里，或 <span class="text-blue-600">点击选择</span></p>
+                    <p class="text-xs text-gray-400 mt-1">支持 PDF、Word、PPT、图片、压缩包等格式</p>
+                    <input type="file" name="file" required class="hidden" id="file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp,.zip,.rar">
+                    <p class="mt-2 text-sm text-gray-600 font-medium hidden" id="file-name"></p>
+                </div>
+            </div>
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300">上传资料</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const fileName = document.getElementById('file-name');
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { if(fileInput.files[0]){ fileName.textContent = '已选择: ' + fileInput.files[0].name; fileName.classList.remove('hidden'); } });
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-blue-400'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-400'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('border-blue-400'); if(e.dataTransfer.files[0]){ fileInput.files = e.dataTransfer.files; fileName.textContent = '已选择: ' + e.dataTransfer.files[0].name; fileName.classList.remove('hidden'); } });
+</script>
+{% endblock %}

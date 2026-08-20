@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}竞赛组队 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">竞赛组队</h1>
+                <p class="text-gray-500 text-sm mt-0.5">寻找队友，一起参赛</p>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('competition.create') }}" class="mt-4 sm:mt-0 inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-medium rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md active:scale-[0.98] gap-2" data-ripple>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            发布招募
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 类型筛选 -->
+    <div class="flex flex-wrap gap-2 mb-6" data-animate="fade-up" data-animate-delay="60">
+        <a href="?type=" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if not comp_type %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            全部
+        </a>
+        <a href="?type=学科竞赛" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '学科竞赛' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            学科竞赛
+        </a>
+        <a href="?type=创新创业" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '创新创业' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            创新创业
+        </a>
+        <a href="?type=文艺体育" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '文艺体育' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            文艺体育
+        </a>
+        <a href="?type=其他" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '其他' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+            其他
+        </a>
+    </div>
+
+    {% if competitions %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger="70">
+        {% for c in competitions %}
+        <a href="{{ url_for('competition.detail', id=c.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover:border-orange-200" data-tilt data-tilt-max="4">
+            <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full flex items-center gap-1">
+                    <span class="w-1 h-1 rounded-full bg-orange-400"></span>{{ c.comp_type }}
+                </span>
+                <span class="text-xs {% if c.status == 'open' %}text-green-600 bg-green-50 px-2 py-0.5 rounded-full{% else %}text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full{% endif %} font-medium">
+                    {{ '招募中' if c.status == 'open' else '已关闭' }}
+                </span>
+            </div>
+            <h3 class="text-base font-bold text-gray-900 group-hover:text-orange-600 transition-colors duration-200 line-clamp-1">{{ c.title }}</h3>
+            <p class="mt-2 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ c.description }}</p>
+            <div class="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-300 to-red-300 flex items-center justify-center text-white text-[10px] font-bold">{{ c.owner.username[0].upper() }}</span>
+                    {{ c.owner.username }}
+                </span>
+                <span class="flex items-center gap-3">
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+                        {{ c.approved_count }}/{{ c.team_size or '不限' }}
+                    </span>
+                    {% if c.deadline %}
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        {{ c.deadline.strftime('%m-%d') }}截止
+                    </span>
+                    {% endif %}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="mt-8 flex justify-center" data-animate="fade-up" data-animate-delay="200">
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">上一页</a>{% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}<a href="?page={{ p }}&type={{ comp_type }}" class="px-4 py-2 {% if p==pagination.page %}bg-orange-600 text-white shadow-md{% else %}bg-white border{% endif %} rounded-lg text-sm transition-all duration-200 hover:-translate-y-0.5">{{ p }}</a>{% else %}<span class="px-2 py-2 text-gray-400">...</span>{% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">下一页</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-20" data-animate="scale-in">
+        <div class="empty-state-float">
+            <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <p class="mt-4 text-gray-500">暂无竞赛招募</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

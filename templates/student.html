@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% block title %}个人中心 - {{ user.username }}{% endblock %}
+
+{% block head %}
+<style>
+    /* 内容列表项 hover 背景渐变 */
+    .content-item:hover { background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%); border-color: #93c5fd; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========== 个人信息头部卡片 ========== -->
+    <div class="relative overflow-hidden bg-white rounded-3xl shadow-lg border border-gray-100 animate-slide-up">
+        <!-- 装饰背景 -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-gradient-to-tr from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+        <div class="relative p-6 sm:p-8 lg:p-10">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                <!-- 头像 -->
+                <div class="relative flex-shrink-0 cursor-pointer group/avatar" onclick="document.getElementById('avatarInput').click()" title="点击更换头像">
+                    {% if user.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=user.avatar) }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover avatar-glow shadow-2xl">
+                    {% else %}
+                    <div class="w-28 h-28 bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-400 rounded-full flex items-center justify-center text-white text-4xl font-bold avatar-glow shadow-2xl">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    {% endif %}
+                    <!-- 上传遮罩 -->
+                    <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <!-- 在线状态点 -->
+                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-400 border-4 border-white rounded-full shadow-sm"></div>
+                </div>
+                <!-- 隐藏的头像上传表单 -->
+                <form id="avatarForm" action="{{ url_for('auth.upload_avatar') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+                    <input type="file" id="avatarInput" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" onchange="previewAndSubmit(this)">
+                </form>
+
+                <!-- 用户信息 -->
+                <div class="flex-1 text-center sm:text-left">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{{ user.username }}</h1>
+                        {% if user.is_admin() %}
+                        <span class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-red-50 to-orange-50 text-red-600 text-xs font-bold rounded-full border border-red-200 shadow-sm">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            管理员
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            {{ user.email }}
+                        </span>
+                        <span class="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ user.created_at.strftime('%Y年%m月%d日') }} 加入
+                        </span>
+                    </div>
+
+                    <!-- 个人简介 -->
+                    <div class="relative group/bio">
+                        {% if user.bio %}
+                        <p class="text-gray-600 text-sm leading-relaxed bg-gradient-to-r from-blue-50/50 to-cyan-50/50 rounded-xl px-4 py-3 border border-blue-100/50">
+                            <span class="text-blue-500 mr-1">"</span>{{ user.bio }}<span class="text-blue-500 ml-1">"</span>
+                        </p>
+                        {% else %}
+                        <p class="text-gray-400 text-sm italic bg-gray-50 rounded-xl px-4 py-3 border border-dashed border-gray-200">
+                            还没有填写个人简介，<button onclick="openEditModal()" class="text-blue-500 hover:text-blue-700 underline underline-offset-2 not-italic">点此添加</button>
+                        </p>
+                        {% endif %}
+                        <button onclick="openEditModal()" class="absolute top-2 right-2 edit-btn w-7 h-7 bg-white/80 hover:bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200 opacity-0 group-hover/bio:opacity-100 transition-all" title="编辑资料">
+                            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 统计卡片（可点击跳转） ========== -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mt-6" id="statCards">
+        <!-- 论坛帖子 -->
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm {% if tab == 'posts' %}active border-blue-400{% endif %}"
+             onclick="switchTab('posts')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-blue-600">{{ post_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">论坛帖子</p>
+            <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                点击查看
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </p>
+        </div>
+        <!-- 上传资料 -->
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm {% if tab == 'materials' %}active border-purple-400{% endif %}"
+             onclick="switchTab('materials')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-purple-600">{{ material_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">学习资料</p>
+            <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                点击查看
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </p>
+        </div>
+        <!-- 发起招募 -->
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm {% if tab == 'competitions' %}active border-orange-400{% endif %}"
+             onclick="switchTab('competitions')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-orange-600">{{ competition_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">竞赛招募</p>
+            <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                点击查看
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </p>
+        </div>
+        <!-- 发布闲置 -->
+        <div class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm {% if tab == 'textbooks' %}active border-green-400{% endif %}"
+             onclick="switchTab('textbooks')">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-green-600">{{ textbook_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">二手闲置</p>
+            <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                点击查看
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </p>
+        </div>
+        <!-- 我的好友 -->
+        <a href="{{ url_for('social.friend_list') }}" class="stat-card bg-white rounded-2xl p-4 sm:p-5 border-2 border-transparent shadow-sm hover:border-pink-400 transition-all block">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <span class="text-2xl sm:text-3xl font-extrabold text-pink-600">{{ friend_count }}</span>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">我的好友</p>
+            <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                查看好友
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </p>
+        </a>
+    </div>
+
+    <!-- ========== 快捷操作按钮 ========== -->
+    <div class="flex flex-wrap gap-2 mt-5">
+        <a href="{{ url_for('forum.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            发布帖子
+        </a>
+        <a href="{{ url_for('materials.upload') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            上传资料
+        </a>
+        <a href="{{ url_for('competition.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            创建招募
+        </a>
+        <a href="{{ url_for('textbook.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            发布闲置
+        </a>
+    </div>
+
+    <!-- ========== Tab 导航 ========== -->
+    <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="flex border-b border-gray-100 overflow-x-auto scrollbar-hide">
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 transition-all {% if tab == 'posts' %}active text-blue-600 bg-blue-50/30{% endif %}"
+                    onclick="switchTab('posts')">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                    我的帖子
+                </span>
+            </button>
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold text-gray-500 hover:text-purple-600 hover:bg-purple-50/50 transition-all {% if tab == 'materials' %}active text-purple-600 bg-purple-50/30{% endif %}"
+                    onclick="switchTab('materials')">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    我的资料
+                </span>
+            </button>
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold text-gray-500 hover:text-orange-600 hover:bg-orange-50/50 transition-all {% if tab == 'competitions' %}active text-orange-600 bg-orange-50/30{% endif %}"
+                    onclick="switchTab('competitions')">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    我的招募
+                </span>
+            </button>
+            <button class="tab-btn flex-1 min-w-[80px] px-4 py-3.5 text-sm font-semibold text-gray-500 hover:text-green-600 hover:bg-green-50/50 transition-all {% if tab == 'textbooks' %}active text-green-600 bg-green-50/30{% endif %}"
+                    onclick="switchTab('textbooks')">
+                <span class="flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    我的闲置
+                </span>
+            </button>
+        </div>
+
+        <!-- ========== Tab 内容区 ========== -->
+        <div class="p-4 sm:p-6 min-h-[300px]">
+            {% if items %}
+            <div class="space-y-3">
+                {% for item in items %}
+                    {% if tab == 'posts' %}
+                    <!-- 帖子列表项 -->
+                    <a href="{{ url_for('forum.post', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white hover:no-underline group/post">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center group-hover/post:bg-blue-100 transition-colors">
+                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/post:text-blue-600 transition-colors line-clamp-1">
+                                {% if item.is_pinned %}<span class="text-red-500 mr-1">[置顶]</span>{% endif %}{{ item.title }}
+                            </h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.content[:100] }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ item.views }}</span>
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>{{ item.comment_count }}</span>
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>{{ item.like_count }}</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-center">
+                            <svg class="w-5 h-5 text-gray-300 group-hover/post:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </a>
+
+                    {% elif tab == 'materials' %}
+                    <!-- 资料列表项 -->
+                    <a href="{{ url_for('materials.detail', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white hover:no-underline group/mat">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center group-hover/mat:bg-purple-100 transition-colors
+                                {% if item.file_type == 'pdf' %}bg-red-50{% elif item.file_type == 'doc' %}bg-blue-50{% elif item.file_type == 'ppt' %}bg-orange-50{% else %}bg-purple-50{% endif %}">
+                                <span class="text-xs font-bold
+                                    {% if item.file_type == 'pdf' %}text-red-500{% elif item.file_type == 'doc' %}text-blue-500{% elif item.file_type == 'ppt' %}text-orange-500{% else %}text-purple-500{% endif %}">
+                                    {{ item.file_type.upper() if item.file_type else 'FILE' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/mat:text-purple-600 transition-colors line-clamp-1">{{ item.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.description or '暂无描述' }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="px-2 py-0.5 bg-gray-100 rounded-full text-xs">{{ item.category }}</span>
+                                <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ item.views }}</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-center">
+                            <svg class="w-5 h-5 text-gray-300 group-hover/mat:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </a>
+
+                    {% elif tab == 'competitions' %}
+                    <!-- 竞赛列表项 -->
+                    <a href="{{ url_for('competition.detail', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white hover:no-underline group/comp">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center group-hover/comp:bg-orange-100 transition-colors">
+                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/comp:text-orange-600 transition-colors line-clamp-1">{{ item.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.description[:100] }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="px-2 py-0.5 rounded-full text-xs {% if item.status == 'open' %}bg-green-50 text-green-600{% else %}bg-gray-100 text-gray-500{% endif %}">{{ '招募中' if item.status == 'open' else '已关闭' }}</span>
+                                <span>{{ item.application_count }} 人申请</span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-center">
+                            <svg class="w-5 h-5 text-gray-300 group-hover/comp:text-orange-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </a>
+
+                    {% elif tab == 'textbooks' %}
+                    <!-- 闲置列表项 -->
+                    <a href="{{ url_for('textbook.detail', id=item.id) }}" class="content-item flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-100 bg-white hover:no-underline group/tb">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center group-hover/tb:bg-green-100 transition-colors">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm sm:text-base font-semibold text-gray-800 group-hover/tb:text-green-600 transition-colors line-clamp-1">{{ item.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-1">{{ item.description or '暂无描述' }}</p>
+                            <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                <span class="font-bold text-green-600">¥{{ "%.2f"|format(item.price) }}</span>
+                                <span class="px-2 py-0.5 rounded-full text-xs
+                                    {% if item.trade_status == 'available' %}bg-green-50 text-green-600
+                                    {% elif item.trade_status == 'reserved' %}bg-yellow-50 text-yellow-600
+                                    {% else %}bg-gray-100 text-gray-500{% endif %}">
+                                    {{ {'available':'在售','reserved':'已预订','sold':'已售出'}.get(item.trade_status, item.trade_status) }}
+                                </span>
+                                <span class="ml-auto">{{ item.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 self-center">
+                            <svg class="w-5 h-5 text-gray-300 group-hover/tb:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if pagination and pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-2 mt-6 flex-wrap">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('auth.profile', tab=tab, page=pagination.prev_num) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">上一页</a>
+                {% endif %}
+                {% for p in range(1, pagination.pages + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="px-3 py-1.5 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-sm">{{ p }}</span>
+                    {% elif p <= 3 or p > pagination.pages - 3 or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
+                    <a href="{{ url_for('auth.profile', tab=tab, page=p) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">{{ p }}</a>
+                    {% elif p == 4 or p == pagination.pages - 3 %}
+                    <span class="px-2 text-gray-400">...</span>
+                    {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('auth.profile', tab=tab, page=pagination.next_num) }}" class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">下一页</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- 空状态 -->
+            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    {% if tab == 'posts' %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                    {% elif tab == 'materials' %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    {% elif tab == 'competitions' %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {% else %}
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    {% endif %}
+                </div>
+                <p class="text-base font-medium">暂无内容</p>
+                <p class="text-sm mt-1">
+                    {% if tab == 'posts' %}你还没有发布过帖子{% elif tab == 'materials' %}你还没有上传过学习资料{% elif tab == 'competitions' %}你还没有发起过竞赛招募{% else %}你还没有发布过闲置物品{% endif %}
+                </p>
+                {% if tab == 'posts' %}
+                <a href="{{ url_for('forum.create') }}" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-md hover:shadow-lg transition-all">去发布第一篇帖子</a>
+                {% elif tab == 'materials' %}
+                <a href="{{ url_for('materials.upload') }}" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-md hover:shadow-lg transition-all">去上传第一份资料</a>
+                {% elif tab == 'competitions' %}
+                <a href="{{ url_for('competition.create') }}" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-md hover:shadow-lg transition-all">去发起第一个招募</a>
+                {% else %}
+                <a href="{{ url_for('textbook.create') }}" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-md hover:shadow-lg transition-all">去发布第一件闲置</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ========== 编辑资料弹窗 ========== -->
+<div id="editModal" class="fixed inset-0 z-[200] hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/40 modal-overlay" onclick="closeEditModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-slide-up">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-bold text-gray-900">编辑个人资料</h3>
+            <button onclick="closeEditModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form action="{{ url_for('auth.edit_profile') }}" method="POST">
+            <!-- 头像修改区 -->
+            <div class="flex items-center gap-4 mb-5 pb-4 border-b border-gray-100">
+                <div class="relative group/edit-avatar cursor-pointer" onclick="document.getElementById('modalAvatarInput').click()">
+                    {% if user.avatar %}
+                    <img id="modalAvatarPreview" src="{{ url_for('uploaded_file', key=user.avatar) }}" class="w-16 h-16 rounded-full object-cover shadow-md">
+                    {% else %}
+                    <div id="modalAvatarPreview" class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md">{{ user.username[0].upper() }}</div>
+                    {% endif %}
+                    <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover/edit-avatar:opacity-100 transition-all duration-200">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-700">更换头像</p>
+                    <p class="text-xs text-gray-400 mt-0.5">支持 JPG、PNG、GIF、WebP</p>
+                    {% if user.avatar %}
+                    <button type="button" onclick="deleteAvatar(event)" class="mt-1 text-xs text-red-500 hover:text-red-700 underline underline-offset-2">删除头像</button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">邮箱</label>
+                    <input type="email" name="email" value="{{ user.email }}" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">个人简介</label>
+                    <textarea name="bio" rows="4" maxlength="500" placeholder="介绍一下你自己吧…" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all outline-none resize-none">{{ user.bio or '' }}</textarea>
+                    <p class="text-xs text-gray-400 mt-1">最多500字</p>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">取消</button>
+                <button type="submit" class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-lg transition-all">保存修改</button>
+            </div>
+        </form>
+        <!-- 弹窗内的头像上传表单（独立，不走主表单） -->
+        <form id="modalAvatarForm" action="{{ url_for('auth.upload_avatar') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+            <input type="file" id="modalAvatarInput" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" onchange="submitModalAvatar(this)">
+        </form>
+        {% if user.avatar %}
+        <form id="deleteAvatarForm" action="{{ url_for('auth.delete_avatar') }}" method="POST" style="display:none;"></form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab 切换
+    function switchTab(tab) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tab);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+
+    // 编辑资料弹窗
+    function openEditModal() {
+        document.getElementById('editModal').classList.remove('hidden');
+        document.getElementById('editModal').classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.getElementById('editModal').classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+    // ESC 关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeEditModal();
+    });
+
+    // 头像上传：页面主体点击上传（预览后自动提交）
+    function previewAndSubmit(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        // 预览
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var avatarImg = document.querySelector('.group\\/avatar img');
+            var avatarDiv = document.querySelector('.group\\/avatar .bg-gradient-to-br');
+            if (avatarImg) {
+                avatarImg.src = e.target.result;
+            } else if (avatarDiv) {
+                // 替换文字头像为图片
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = '{{ user.username }}';
+                img.className = 'w-28 h-28 rounded-full object-cover avatar-glow shadow-2xl';
+                avatarDiv.parentNode.querySelector('.absolute.inset-0.rounded-full.bg-black\\/40') ? 
+                    avatarDiv.replaceWith(img) : avatarDiv.replaceWith(img);
+            }
+            // 提交表单
+            document.getElementById('avatarForm').submit();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 弹窗内头像上传
+    function submitModalAvatar(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var preview = document.getElementById('modalAvatarPreview');
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                var img = document.createElement('img');
+                img.id = 'modalAvatarPreview';
+                img.src = e.target.result;
+                img.className = 'w-16 h-16 rounded-full object-cover shadow-md';
+                preview.replaceWith(img);
+            }
+            document.getElementById('modalAvatarForm').submit();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 删除头像
+    function deleteAvatar(e) {
+        e.preventDefault();
+        if (confirm('确定删除当前头像，恢复为默认头像吗？')) {
+            document.getElementById('deleteAvatarForm').submit();
+        }
+    }
+
+    // 统计卡片高亮同步
+    const currentTab = '{{ tab }}';
+    document.querySelectorAll('.stat-card').forEach(card => {
+        if (card.classList.contains('active')) {
+            card.classList.add('border-blue-400');
+        }
+    });
+</script>
+{% endblock %}

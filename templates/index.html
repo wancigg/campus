@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+{% block title %}校桥 CampusBridge - 校园资源交换与交流平台{% endblock %}
+
+{% block content %}
+<!-- Hero 区域 —— 校桥主题：桥接知识与未来 -->
+<section class="hero-bridge relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 校桥主视觉：跨屏大拱桥 SVG              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="absolute inset-0 pointer-events-none bridge-scene" aria-hidden="true">
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 桥体发光渐变（降亮） -->
+                <linearGradient id="bridgeGlow" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.25"/>
+                    <stop offset="50%" stop-color="#93c5fd" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.25"/>
+                </linearGradient>
+                <linearGradient id="bridgeBody" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#93c5fd" stop-opacity="0.15"/>
+                </linearGradient>
+                <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.02"/>
+                </linearGradient>
+                <linearGradient id="cableGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.08"/>
+                    <stop offset="50%" stop-color="#ffffff" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#e0f2fe" stop-opacity="0.08"/>
+                </linearGradient>
+                <radialGradient id="nodeGlow">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#7dd3fc" stop-opacity="0"/>
+                </radialGradient>
+                <filter id="glowFilter">
+                    <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <filter id="softGlow">
+                    <feGaussianBlur stdDeviation="3"/>
+                </filter>
+            </defs>
+
+            <!-- ── 远景：淡色背景拱（装饰层） ── -->
+            <g opacity="0.03">
+                <path d="M-50 520 Q300 180 720 520 Q1140 180 1490 520" fill="none" stroke="white" stroke-width="12"/>
+                <path d="M-50 540 Q300 220 720 540 Q1140 220 1490 540" fill="none" stroke="white" stroke-width="8"/>
+            </g>
+
+            <!-- ── 主桥拱（三道拱门） ── -->
+            <g filter="url(#glowFilter)">
+                <!-- 左拱 -->
+                <path d="M120 480 Q360 80 600 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="3" opacity="0.35"/>
+                <!-- 中拱（最宽最高） -->
+                <path d="M480 480 Q720 -20 960 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="4" opacity="0.4"/>
+                <!-- 右拱 -->
+                <path d="M840 480 Q1080 80 1320 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="3" opacity="0.35"/>
+            </g>
+
+            <!-- ── 拱内填充（半透明桥体） ── -->
+            <g opacity="0.06">
+                <path d="M120 480 Q360 80 600 480 L600 500 Q360 140 120 500 Z" fill="url(#bridgeBody)"/>
+                <path d="M480 480 Q720 -20 960 480 L960 500 Q720 60 480 500 Z" fill="url(#bridgeBody)"/>
+                <path d="M840 480 Q1080 80 1320 480 L1320 500 Q1080 140 840 500 Z" fill="url(#bridgeBody)"/>
+            </g>
+
+            <!-- ── 桥面（水平横线） ── -->
+            <line x1="80" y1="440" x2="1360" y2="440" stroke="white" stroke-width="2" opacity="0.2" filter="url(#glowFilter)"/>
+            <line x1="80" y1="446" x2="1360" y2="446" stroke="white" stroke-width="1" opacity="0.12"/>
+
+            <!-- ── 悬索/拉索（从桥面到拱顶） ── -->
+            <g opacity="0.08" stroke="url(#cableGrad)" stroke-width="0.6">
+                <!-- 左拱拉索 -->
+                <line x1="200" y1="440" x2="360" y2="140"/>
+                <line x1="280" y1="440" x2="360" y2="140"/>
+                <line x1="360" y1="440" x2="360" y2="140"/>
+                <line x1="440" y1="440" x2="360" y2="140"/>
+                <line x1="520" y1="440" x2="360" y2="140"/>
+                <!-- 中拱拉索 -->
+                <line x1="560" y1="440" x2="720" y2="30"/>
+                <line x1="640" y1="440" x2="720" y2="30"/>
+                <line x1="720" y1="440" x2="720" y2="30"/>
+                <line x1="800" y1="440" x2="720" y2="30"/>
+                <line x1="880" y1="440" x2="720" y2="30"/>
+                <!-- 右拱拉索 -->
+                <line x1="920" y1="440" x2="1080" y2="140"/>
+                <line x1="1000" y1="440" x2="1080" y2="140"/>
+                <line x1="1080" y1="440" x2="1080" y2="140"/>
+                <line x1="1160" y1="440" x2="1080" y2="140"/>
+                <line x1="1240" y1="440" x2="1080" y2="140"/>
+            </g>
+
+            <!-- ── 桥墩/支柱 ── -->
+            <g opacity="0.1">
+                <rect x="340" y="420" width="40" height="80" rx="6" fill="white"/>
+                <rect x="700" y="420" width="40" height="80" rx="6" fill="white"/>
+                <rect x="1060" y="420" width="40" height="80" rx="6" fill="white"/>
+            </g>
+
+            <!-- ── 桥面节点光点 ── -->
+            <g filter="url(#glowFilter)">
+                <circle cx="120" cy="443" r="2.5" fill="white" opacity="0.3">
+                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="360" cy="443" r="3" fill="white" opacity="0.35">
+                    <animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="720" cy="443" r="3.5" fill="white" opacity="0.4">
+                    <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="1080" cy="443" r="3" fill="white" opacity="0.35">
+                    <animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="1320" cy="443" r="2.5" fill="white" opacity="0.3">
+                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+            </g>
+
+            <!-- ── 水面（底部波纹） ── -->
+            <g opacity="0.08">
+                <path d="M0 520 Q120 490 240 520 Q360 550 480 520 Q600 490 720 520 Q840 550 960 520 Q1080 490 1200 520 Q1320 550 1440 520 L1440 600 L0 600 Z" fill="url(#waterGrad)">
+                    <animate attributeName="d" values="
+                        M0 520 Q120 490 240 520 Q360 550 480 520 Q600 490 720 520 Q840 550 960 520 Q1080 490 1200 520 Q1320 550 1440 520 L1440 600 L0 600 Z;
+                        M0 515 Q120 545 240 515 Q360 485 480 515 Q600 545 720 515 Q840 485 960 515 Q1080 545 1200 515 Q1320 485 1440 515 L1440 600 L0 600 Z;
+                        M0 520 Q120 490 240 520 Q360 550 480 520 Q600 490 720 520 Q840 550 960 520 Q1080 490 1200 520 Q1320 550 1440 520 L1440 600 L0 600 Z"
+                        dur="5s" repeatCount="indefinite"/>
+                </path>
+                <path d="M0 545 Q180 520 360 545 Q540 570 720 545 Q900 520 1080 545 Q1260 570 1440 545 L1440 600 L0 600 Z" fill="url(#waterGrad)" opacity="0.4">
+                    <animate attributeName="d" values="
+                        M0 545 Q180 520 360 545 Q540 570 720 545 Q900 520 1080 545 Q1260 570 1440 545 L1440 600 L0 600 Z;
+                        M0 540 Q180 565 360 540 Q540 515 720 540 Q900 565 1080 540 Q1260 515 1440 540 L1440 600 L0 600 Z;
+                        M0 545 Q180 520 360 545 Q540 570 720 545 Q900 520 1080 545 Q1260 570 1440 545 L1440 600 L0 600 Z"
+                        dur="4.5s" repeatCount="indefinite"/>
+                </path>
+            </g>
+
+            <!-- ── 水面倒影光点 ── -->
+            <g opacity="0.06" filter="url(#softGlow)">
+                <ellipse cx="360" cy="530" rx="20" ry="3" fill="white">
+                    <animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.25;0.4;0.25" dur="3s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="720" cy="535" rx="30" ry="4" fill="white">
+                    <animate attributeName="rx" values="30;45;30" dur="3.5s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="3.5s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="1080" cy="530" rx="20" ry="3" fill="white">
+                    <animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/>
+                </ellipse>
+            </g>
+
+            <!-- ── 飞鸟剪影 ── -->
+            <g opacity="0.06" fill="none" stroke="white" stroke-width="1">
+                <path d="M200 200 Q210 190 220 200 Q230 190 240 200">
+                    <animateTransform attributeName="transform" type="translate" values="0,0;-30,-8;-60,0" dur="7s" repeatCount="indefinite"/>
+                </path>
+                <path d="M620 150 Q628 142 636 150 Q644 142 652 150">
+                    <animateTransform attributeName="transform" type="translate" values="0,0;-20,-6;-40,0" dur="6s" repeatCount="indefinite"/>
+                </path>
+                <path d="M1050 170 Q1058 162 1066 170 Q1074 162 1082 170">
+                    <animateTransform attributeName="transform" type="translate" values="0,0;-25,-7;-50,0" dur="8s" repeatCount="indefinite"/>
+                </path>
+            </g>
+
+            <!-- ── 远景校园建筑剪影 ── -->
+            <g opacity="0.04" fill="white">
+                <rect x="60" y="440" width="20" height="60" rx="2"/>
+                <rect x="85" y="430" width="16" height="70" rx="2"/>
+                <rect x="106" y="445" width="22" height="55" rx="2"/>
+                <rect x="1300" y="435" width="24" height="65" rx="2"/>
+                <rect x="1329" y="445" width="18" height="55" rx="2"/>
+                <rect x="1352" y="438" width="20" height="62" rx="2"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 动态粒子系统（CSS 动画）               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="absolute inset-0 pointer-events-none bridge-particles" aria-hidden="true">
+        <!-- Particle 1 -->
+        <div class="bridge-particle" style="left:8%;top:70%;--size:3px;--drift:18px;--speed:7s;--delay:0s;--color:rgba(147,197,253,0.8)"></div>
+        <!-- Particle 2 -->
+        <div class="bridge-particle" style="left:15%;top:80%;--size:2px;--drift:-12px;--speed:9s;--delay:1.2s;--color:rgba(167,139,250,0.7)"></div>
+        <!-- Particle 3 -->
+        <div class="bridge-particle" style="left:22%;top:75%;--size:4px;--drift:20px;--speed:6s;--delay:2.5s;--color:rgba(255,255,255,0.7)"></div>
+        <!-- Particle 4 -->
+        <div class="bridge-particle" style="left:30%;top:85%;--size:2.5px;--drift:-15px;--speed:8s;--delay:0.8s;--color:rgba(103,232,249,0.8)"></div>
+        <!-- Particle 5 -->
+        <div class="bridge-particle" style="left:38%;top:72%;--size:3px;--drift:22px;--speed:7.5s;--delay:3s;--color:rgba(196,181,253,0.7)"></div>
+        <!-- Particle 6 -->
+        <div class="bridge-particle" style="left:45%;top:78%;--size:5px;--drift:-8px;--speed:5.5s;--delay:1.5s;--color:rgba(255,255,255,0.6)"></div>
+        <!-- Particle 7 -->
+        <div class="bridge-particle" style="left:52%;top:82%;--size:2px;--drift:25px;--speed:10s;--delay:0.3s;--color:rgba(147,197,253,0.9)"></div>
+        <!-- Particle 8 -->
+        <div class="bridge-particle" style="left:58%;top:70%;--size:3.5px;--drift:-18px;--speed:6.8s;--delay:2s;--color:rgba(167,139,250,0.6)"></div>
+        <!-- Particle 9 -->
+        <div class="bridge-particle" style="left:65%;top:76%;--size:2px;--drift:15px;--speed:8.5s;--delay:0.6s;--color:rgba(103,232,249,0.7)"></div>
+        <!-- Particle 10 -->
+        <div class="bridge-particle" style="left:72%;top:84%;--size:4px;--drift:-22px;--speed:7.2s;--delay:3.5s;--color:rgba(255,255,255,0.7)"></div>
+        <!-- Particle 11 -->
+        <div class="bridge-particle" style="left:78%;top:73%;--size:2.5px;--drift:12px;--speed:9.5s;--delay:1.8s;--color:rgba(196,181,253,0.8)"></div>
+        <!-- Particle 12 -->
+        <div class="bridge-particle" style="left:85%;top:80%;--size:3px;--drift:-20px;--speed:6.3s;--delay:2.8s;--color:rgba(147,197,253,0.7)"></div>
+        <!-- Particle 13 -->
+        <div class="bridge-particle" style="left:10%;top:65%;--size:2px;--drift:8px;--speed:11s;--delay:4s;--color:rgba(255,255,255,0.5)"></div>
+        <!-- Particle 14 -->
+        <div class="bridge-particle" style="left:50%;top:68%;--size:1.5px;--drift:-10px;--speed:12s;--delay:2.2s;--color:rgba(103,232,249,0.6)"></div>
+        <!-- Particle 15 -->
+        <div class="bridge-particle" style="left:90%;top:75%;--size:3px;--drift:16px;--speed:8.2s;--delay:1s;--color:rgba(167,139,250,0.8)"></div>
+        <!-- Particle 16 -->
+        <div class="bridge-particle" style="left:35%;top:88%;--size:2px;--drift:30px;--speed:7.8s;--delay:0.4s;--color:rgba(255,255,255,0.6)"></div>
+        <!-- Particle 17 -->
+        <div class="bridge-particle" style="left:68%;top:66%;--size:4.5px;--drift:-14px;--speed:5.8s;--delay:3.2s;--color:rgba(147,197,253,0.9)"></div>
+        <!-- Particle 18 -->
+        <div class="bridge-particle" style="left:25%;top:90%;--size:1.8px;--drift:19px;--speed:10.5s;--delay:1.6s;--color:rgba(196,181,253,0.5)"></div>
+        <!-- Particle 19 -->
+        <div class="bridge-particle" style="left:95%;top:69%;--size:2.2px;--drift:-25px;--speed:9.2s;--delay:0.9s;--color:rgba(103,232,249,0.7)"></div>
+        <!-- Particle 20 -->
+        <div class="bridge-particle" style="left:42%;top:62%;--size:3px;--drift:10px;--speed:6.5s;--delay:4.2s;--color:rgba(255,255,255,0.8)"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 光晕装饰（降亮）                         -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="absolute top-16 -left-20 w-80 h-80 bg-blue-300/5 rounded-full blur-3xl animate-pulse-soft"></div>
+    <div class="absolute bottom-0 -right-20 w-96 h-96 bg-cyan-300/4 rounded-full blur-3xl animate-float"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- 左右动态功能图标                         -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="absolute inset-0 pointer-events-none hero-icons" aria-hidden="true">
+        <!-- 左上方：学习资料（书本） -->
+        <div class="hero-icon hero-icon--book" style="left:6%;top:15%;--drift-x:12px;--drift-y:-8px;--speed:5s;--delay:0s">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+        </div>
+        <!-- 左上方：论坛（聊天气泡） -->
+        <div class="hero-icon hero-icon--chat" style="left:3%;top:35%;--drift-x:-8px;--drift-y:10px;--speed:6s;--delay:1.2s">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+            </svg>
+        </div>
+        <!-- 左上方：搜索（放大镜） -->
+        <div class="hero-icon hero-icon--search" style="left:10%;top:50%;--drift-x:6px;--drift-y:-14px;--speed:7s;--delay:2.5s">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+        </div>
+
+        <!-- 右上方：竞赛组队（用户群） -->
+        <div class="hero-icon hero-icon--team" style="right:6%;top:12%;--drift-x:-10px;--drift-y:-6px;--speed:5.5s;--delay:0.5s">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </div>
+        <!-- 右上方：二手闲置（立方体/包裹） -->
+        <div class="hero-icon hero-icon--cube" style="right:3%;top:32%;--drift-x:14px;--drift-y:8px;--speed:6.5s;--delay:1.8s">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+        </div>
+        <!-- 右上方：连接/网络（节点连线） -->
+        <div class="hero-icon hero-icon--network" style="right:10%;top:48%;--drift-x:-6px;--drift-y:-10px;--speed:7.5s;--delay:3s">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+                <line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="19" x2="19" y2="19"/>
+            </svg>
+        </div>
+
+        <!-- 左中：资料上传（上传箭头） -->
+        <div class="hero-icon hero-icon--upload" style="left:2%;top:68%;--drift-x:8px;--drift-y:-5px;--speed:8s;--delay:3.5s">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+        </div>
+        <!-- 右中：点赞（心形） -->
+        <div class="hero-icon hero-icon--heart" style="right:2%;top:65%;--drift-x:-12px;--drift-y:6px;--speed:5.8s;--delay:1s">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Hero 文字内容                             -->
+    <!-- ═══════════════════════════════════════════ -->
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <div class="text-center">
+            <!-- Hero 标题入场 -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-medium text-blue-100 mb-3 border border-white/10" data-animate="fade-up">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft"></span>
+                校园资源交换与交流平台
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight"
+                data-animate="fade-up" data-animate-duration="800">
+                连接校园
+                <span class="block mt-1 bg-gradient-to-r from-cyan-200 to-white bg-clip-text text-transparent">
+                    共享知识与资源
+                </span>
+            </h1>
+            <p class="mt-3 max-w-2xl mx-auto text-base md:text-lg text-blue-100 leading-relaxed"
+               data-animate="fade-up" data-animate-delay="150" data-animate-duration="700">
+                校桥 CampusBridge — 面向全校学生的资源交换与交流平台。<br class="hidden sm:block">
+                学习资料、校园论坛、竞赛组队、二手闲置，一站搞定。
+            </p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3"
+                 data-animate="fade-up" data-animate-delay="300" data-animate-duration="600">
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register') }}" class="px-7 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-base flex items-center gap-2" data-ripple>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    立即加入
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="px-7 py-3 bg-white/15 text-white font-bold rounded-xl border-2 border-white/25 hover:bg-white/25 hover:scale-105 transition-all duration-300 text-base backdrop-blur-sm flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    登录
+                </a>
+                {% else %}
+                <a href="{{ url_for('materials.list') }}" class="px-7 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-base flex items-center gap-2" data-ripple>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    开始使用
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- 🔑 快捷入口图标栏（已登录用户可见） -->
+            {% if current_user.is_authenticated %}
+            <div class="mt-5 flex flex-wrap justify-center gap-3" data-animate="fade-up" data-animate-delay="450">
+                <span class="text-xs text-blue-200/70 w-full mb-1">快捷入口</span>
+                <a href="{{ url_for('materials.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-blue-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+                    </span>
+                    学习资料
+                </a>
+                <a href="{{ url_for('forum.index') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-purple-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                    </span>
+                    校园论坛
+                </a>
+                <a href="{{ url_for('competition.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-orange-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+                    </span>
+                    竞赛组队
+                </a>
+                <a href="{{ url_for('textbook.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-green-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </span>
+                    二手闲置
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- 波浪分隔（融合底部背景） -->
+    <div class="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M0 30C240 60 480 0 720 30C960 60 1200 0 1440 30V60H0V30Z" fill="#f8fafc" opacity="0.95"/>
+        </svg>
+    </div>
+</section>
+
+<!-- 统计数字（透明背景，融入主题） -->
+<section class="relative -mt-1 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5" data-animate-stagger="80">
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent" data-count="{{ material_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">份学习资料</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-400 bg-clip-text text-transparent" data-count="{{ post_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">篇论坛帖子</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent" data-count="{{ competition_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">个竞赛招募</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-green-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent" data-count="{{ textbook_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">件二手闲置</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 四大功能卡片 -->
+<section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12" data-animate="fade-up">
+            <span class="inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold tracking-wide mb-3">CORE FEATURES</span>
+            <h2 class="text-3xl font-bold text-gray-900">核心功能</h2>
+            <p class="mt-3 text-gray-500 max-w-2xl mx-auto">四大核心模块，覆盖校园资源共享的每一个场景</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-animate-stagger="120">
+            <!-- 学习资料 -->
+            <a href="{{ url_for('materials.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-blue-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-500">课件·试题·笔记</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">学习资料</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">上传课件笔记，分类浏览检索，在线预览与评价，让优质资源触手可及。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>{{ material_count or 0 }} 份资料</span>
+                    <span class="font-medium text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all">浏览资料 <span>→</span></span>
+                </div>
+            </a>
+            <!-- 校园论坛 -->
+            <a href="{{ url_for('forum.index') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-purple-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-500">五大分区</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">校园论坛</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">分区讨论、发帖回复、点赞收藏，在交流中碰撞思维火花。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>{{ post_count or 0 }} 篇帖子</span>
+                    <span class="font-medium text-purple-600 flex items-center gap-1 group-hover:gap-2 transition-all">进入论坛 <span>→</span></span>
+                </div>
+            </a>
+            <!-- 竞赛组队 -->
+            <a href="{{ url_for('competition.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-orange-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-500">招募·申请·组队</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">竞赛组队</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">发布招募、申请加入、队伍管理，快速找到最佳搭档。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>{{ competition_count or 0 }} 个招募</span>
+                    <span class="font-medium text-orange-600 flex items-center gap-1 group-hover:gap-2 transition-all">查看招募 <span>→</span></span>
+                </div>
+            </a>
+            <!-- 二手闲置 -->
+            <a href="{{ url_for('textbook.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-green-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-500">书籍·数码·生活</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">二手闲置</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">发布闲置、搜索所需、站内沟通，盘活校园闲置物品。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>{{ textbook_count or 0 }} 件物品</span>
+                    <span class="font-medium text-green-600 flex items-center gap-1 group-hover:gap-2 transition-all">逛逛市场 <span>→</span></span>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- 平台特色 -->
+<section class="py-16 bg-white/30 backdrop-blur-[2px]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12" data-animate="fade-up">
+            <span class="inline-block px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-semibold tracking-wide mb-3">WHY US</span>
+            <h2 class="text-3xl font-bold text-gray-900">为什么选择校桥？</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" data-animate-stagger="100">
+            <div class="stagger-item bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1.5">安全可信</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">校内用户注册，严格内容审核机制，保障平台安全可靠，让每一次分享都安心。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1.5">高效便捷</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">一键上传资料、智能分类检索、即时沟通，让资源获取和闲置交易更加高效。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-teal-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1.5">互助共享</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">倡导知识共享精神，营造互助友爱的校园社区氛围，让每份资源都有价值。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-16 bg-gradient-to-r from-blue-500 to-cyan-500 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-cyan-300/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+         data-animate="scale-in">
+        <h2 class="text-3xl font-bold text-white mb-4">开始你的校园资源共享之旅</h2>
+        <p class="text-blue-100 mb-8 text-lg">加入校桥，与全校同学一起分享知识、交流心得。</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.register') }}" class="inline-flex items-center px-8 py-3.5 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg" data-ripple>
+            免费注册
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}校桥 CampusBridge{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+                        accent: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63' },
+                        teal: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
+                    },
+                    fontFamily: { sans: ['"PingFang SC"', '"Microsoft YaHei"', 'system-ui', 'sans-serif'] },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+                        'bell': 'bell 0.6s ease-in-out',
+                        'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-20px)' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseSoft: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.7' } },
+                        bell: { '0%, 100%': { transform: 'rotate(0deg)' }, '25%': { transform: 'rotate(15deg)' }, '75%': { transform: 'rotate(-15deg)' } },
+                        bounceGentle: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col bg-[#f8fafc]">
+    <!-- ===== 校桥主题背景系统 ===== -->
+    <div class="campus-bg" aria-hidden="true">
+        <!-- 底层渐变 -->
+        <div class="campus-bg-base"></div>
+        <!-- 大型光晕 -->
+        <div class="campus-bg-orb campus-bg-orb--top"></div>
+        <div class="campus-bg-orb campus-bg-orb--mid"></div>
+        <div class="campus-bg-orb campus-bg-orb--bottom"></div>
+        <!-- 网格纹理 -->
+        <div class="campus-bg-grid"></div>
+        <!-- 桥拱 + 水纹 + 书本 图案 -->
+        <div class="campus-bg-pattern"></div>
+        <!-- 校园建筑剪影 -->
+        <div class="campus-bg-skyline"></div>
+        <!-- 纸飞机（象征连接与分享） -->
+        <div class="campus-bg-plane campus-bg-plane--1"></div>
+        <div class="campus-bg-plane campus-bg-plane--2"></div>
+        <div class="campus-bg-plane campus-bg-plane--3"></div>
+        <!-- 光点粒子 -->
+        <div class="campus-bg-particles">
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+            <div class="campus-bg-particle"></div>
+        </div>
+    </div>
+
+    <!-- 页面加载进度条 -->
+    <div class="page-loader" id="page-loader"></div>
+
+    <!-- 导航栏 -->
+    <nav class="bg-white/70 backdrop-blur-xl border-b border-blue-100/30 sticky top-0 z-50 shadow-sm transition-shadow duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('index') }}" class="flex items-center space-x-2 group">
+                        <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">校桥</span>
+                        <span class="hidden sm:inline text-sm text-gray-400 font-medium">CampusBridge</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-0.5">
+                        <a href="{{ url_for('index') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="home">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+                            首页
+                        </a>
+                        <a href="{{ url_for('materials.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="materials">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            学习资料
+                        </a>
+                        <a href="{{ url_for('forum.index') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="forum">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                            校园论坛
+                        </a>
+                        <a href="{{ url_for('competition.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-orange-600 hover:bg-orange-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="competition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            竞赛组队
+                        </a>
+                        <a href="{{ url_for('textbook.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="textbook">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            二手闲置
+                        </a>
+                        <a href="{{ url_for('social.discover') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="social">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            发现好友
+                        </a>
+                        <a href="{{ url_for('chat.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="chat">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"/></svg>
+                            聊天
+                        </a>
+                    </div>
+                </div>
+                <!-- 右侧操作 -->
+                <div class="flex items-center space-x-3">
+                    {% if current_user.is_authenticated %}
+                    <!-- 通知铃铛 -->
+                    <a href="{{ url_for('message.list') }}" class="relative p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" id="notification-bell">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span id="unread-badge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm {% if unread_count == 0 %}hidden{% endif %} transition-all duration-300">
+                            {{ unread_count if unread_count < 99 else '99+' }}
+                        </span>
+                    </a>
+                    <!-- 用户菜单 -->
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                            {% if current_user.avatar %}
+                            <img src="{{ url_for('uploaded_file', key=current_user.avatar) }}" alt="{{ current_user.username }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            {% else %}
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                                {{ current_user.username[0].upper() }}
+                            </div>
+                            {% endif %}
+                            <span class="hidden sm:block text-sm font-medium text-gray-700">{{ current_user.username }}</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                            <div class="px-4 py-2.5 border-b border-gray-50">
+                                <p class="text-sm font-semibold text-gray-900">{{ current_user.username }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">{{ current_user.email }}</p>
+                            </div>
+                            <a href="{{ url_for('auth.profile') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                个人中心
+                            </a>
+                            <a href="{{ url_for('chat.list') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"/></svg>
+                                聊天
+                            </a>
+                            <a href="{{ url_for('social.friend_list') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                我的好友
+                            </a>
+                            {% if current_user.is_admin() %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                后台管理
+                            </a>
+                            {% endif %}
+                            <hr class="my-1 border-gray-100">
+                            <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                退出登录
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200">登录</a>
+                    <a href="{{ url_for('auth.register') }}" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 shadow-md" data-ripple>注册</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash 消息 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-[100] space-y-2 animate-fade-in" id="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message px-5 py-3 rounded-xl shadow-lg border text-sm font-medium flex items-center space-x-3 {% if category == 'success' %}bg-green-50 border-green-200 text-green-800{% elif category == 'error' %}bg-red-50 border-red-200 text-red-800{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+            {% if category == 'success' %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% elif category == 'error' %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% else %}
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {% endif %}
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-50 hover:opacity-100 transition-opacity">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- 主题装饰条 -->
+    <div class="page-accent-bar" aria-hidden="true"></div>
+
+    <!-- 主内容 -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white/50 backdrop-blur-sm border-t border-blue-100/20 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                <!-- 品牌 -->
+                <div class="col-span-2 md:col-span-1">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                        </div>
+                        <span class="text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">校桥</span>
+                    </div>
+                    <p class="text-sm text-gray-400 leading-relaxed">连接校园，共享知识与资源。<br>面向全校学生的综合交流平台。</p>
+                </div>
+                <!-- 功能入口 -->
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">核心功能</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('materials.list') }}" class="text-sm text-gray-400 hover:text-blue-600 transition-colors">学习资料</a></li>
+                        <li><a href="{{ url_for('forum.index') }}" class="text-sm text-gray-400 hover:text-purple-600 transition-colors">校园论坛</a></li>
+                        <li><a href="{{ url_for('competition.list') }}" class="text-sm text-gray-400 hover:text-orange-600 transition-colors">竞赛组队</a></li>
+                        <li><a href="{{ url_for('textbook.list') }}" class="text-sm text-gray-400 hover:text-green-600 transition-colors">二手闲置</a></li>
+                    </ul>
+                </div>
+                <!-- 社交 -->
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">社交互动</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('social.discover') }}" class="text-sm text-gray-400 hover:text-pink-600 transition-colors">发现好友</a></li>
+                        <li><a href="{{ url_for('chat.list') }}" class="text-sm text-gray-400 hover:text-teal-600 transition-colors">聊天</a></li>
+                        <li><a href="{{ url_for('message.list') }}" class="text-sm text-gray-400 hover:text-blue-600 transition-colors">消息通知</a></li>
+                    </ul>
+                </div>
+                <!-- 关于 -->
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">关于</h4>
+                    <ul class="space-y-2">
+                        <li><span class="text-sm text-gray-400">版本 1.0.0</span></li>
+                        <li><span class="text-sm text-gray-400">Flask + Tailwind</span></li>
+                        <li><span class="text-sm text-gray-400">© 2026 校桥开发组</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-400">校园资源交换与交流平台 · 连接每一个校园的你</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

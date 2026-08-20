@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ material.title }} - 学习资料 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+    <!-- 面包屑 -->
+    <div class="flex items-center text-sm text-gray-400 mb-6">
+        <a href="{{ url_for('index') }}" class="hover:text-blue-600">首页</a>
+        <span class="mx-2">/</span>
+        <a href="{{ url_for('materials.list') }}" class="hover:text-blue-600">学习资料</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-600">{{ material.title }}</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 左侧：文件预览与信息 -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <!-- 预览区 -->
+                <div class="bg-gray-100 flex items-center justify-center" style="min-height:400px">
+                    {% if material.file_type == 'image' %}
+                    <img src="{{ url_for('uploaded_file', key=material.file_key) }}" alt="{{ material.title }}" class="max-w-full max-h-96 object-contain" onerror="this.src='https://placehold.co/600x400/e2e8f0/94a3b8?text=图片加载失败'">
+                    {% elif material.file_type == 'pdf' %}
+                    <iframe src="{{ url_for('uploaded_file', key=material.file_key) }}" class="w-full border-0" style="height:500px" title="{{ material.title }}"></iframe>
+                    {% else %}
+                    <div class="text-center p-12">
+                        <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <p class="mt-4 text-gray-500">此文件类型暂不支持在线预览</p>
+                        <a href="{{ url_for('uploaded_file', key=material.file_key) }}" class="mt-3 inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            点击下载
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- 信息栏 -->
+                <div class="p-6">
+                    <div class="flex flex-wrap items-center gap-3 mb-3">
+                        <span class="px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full">{{ material.category }}</span>
+                        <span class="text-xs text-gray-400 uppercase bg-gray-50 px-2 py-1 rounded">{{ material.file_type }}</span>
+                        {% if material.file_size %}<span class="text-xs text-gray-400">{{ (material.file_size / 1024) | round(1) }} KB</span>{% endif %}
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ material.title }}</h1>
+                    <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <span class="flex items-center">
+                            <div class="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xs mr-1.5">{{ material.author.username[0].upper() }}</div>
+                            {{ material.author.username }}
+                        </span>
+                        <span>{{ material.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        <span class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ material.views }}</span>
+                    </div>
+                    {% if material.description %}
+                    <p class="mt-4 text-gray-600 leading-relaxed">{{ material.description }}</p>
+                    {% endif %}
+                    <div class="mt-4">
+                        <a href="{{ url_for('uploaded_file', key=material.file_key) }}" class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            下载文件
+                        </a>
+                        {% if current_user.is_authenticated and material.user_id == current_user.id %}
+                        <form method="POST" action="{{ url_for('materials.delete', id=material.id) }}" onsubmit="return confirm('确定删除这份资料？此操作不可恢复。');" class="inline-block ml-2 align-middle">
+                            <button type="submit" class="inline-flex items-center px-5 py-2.5 border border-red-200 text-red-500 font-medium rounded-xl hover:bg-red-50 transition-colors">
+                                删除资料
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：评价区 -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">资料评分</h3>
+                <div class="flex items-center space-x-2">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">{{ material.avg_rating }}</div>
+                    <div class="text-sm text-gray-500">
+                        <div class="flex text-yellow-400">
+                            {% for i in range(5) %}
+                            {% if i < material.avg_rating|int %}<span>★</span>{% else %}<span class="text-gray-200">★</span>{% endif %}
+                            {% endfor %}
+                        </div>
+                        <span>{{ material.review_count }} 条评价</span>
+                    </div>
+                </div>
+                {% if current_user.is_authenticated %}
+                <form method="POST" action="{{ url_for('materials.review', id=material.id) }}" class="mt-5 pt-4 border-t border-gray-100">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">我的评分</label>
+                    <div class="flex space-x-1 mb-3" id="star-rating">
+                        {% for i in range(1, 6) %}
+                        <button type="button" onclick="setRating({{ i }})" class="star-btn text-2xl text-gray-200 hover:text-yellow-400 transition-colors" data-value="{{ i }}">★</button>
+                        {% endfor %}
+                        <input type="hidden" name="rating" id="rating-input" value="5">
+                    </div>
+                    <textarea name="comment" rows="2" placeholder="写下你的评价..." class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm resize-none"></textarea>
+                    <button type="submit" class="mt-3 w-full py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:shadow-md transition-all">提交评价</button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if reviews %}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">用户评价</h3>
+                <div class="space-y-4">
+                    {% for r in reviews %}
+                    <div class="pb-4 border-b border-gray-50 last:border-0 last:pb-0">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-7 h-7 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold">{{ r.reviewer.username[0].upper() }}</div>
+                                <span class="text-sm font-medium text-gray-700">{{ r.reviewer.username }}</span>
+                            </div>
+                            <div class="flex text-yellow-400 text-sm">
+                                {% for _ in range(r.rating) %}★{% endfor %}
+                                {% for _ in range(5 - r.rating) %}<span class="text-gray-200">★</span>{% endfor %}
+                            </div>
+                        </div>
+                        {% if r.comment %}
+                        <p class="mt-2 text-sm text-gray-600">{{ r.comment }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-400">{{ r.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setRating(val) {
+    document.getElementById('rating-input').value = val;
+    document.querySelectorAll('.star-btn').forEach((btn, i) => {
+        btn.className = i < val ? 'star-btn text-2xl text-yellow-400 transition-colors' : 'star-btn text-2xl text-gray-200 hover:text-yellow-400 transition-colors';
+    });
+}
+// 默认5星
+setRating(5);
+</script>
+{% endblock %}

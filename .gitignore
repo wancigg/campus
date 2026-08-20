@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Database (schema in db_init.sql, seed data in seed_data.py)
+*.db
+instance/
+
+# Node
+node_modules/
+
+# User uploads (keep empty folder structure in uploads_placeholder if needed)
+uploads/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+.idea/
+.claude/
+.trae/
+
+# Logs / runtime files
+*.log
+*.err
+server.*
+*_output.txt
+
+# Temp files
+query
+query.*
+tmp/
+temp/
+
+# OS
+Thumbs.db
+.DS_Store

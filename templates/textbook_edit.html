@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}发布闲置 - 二手闲置 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-slide-up">
+    <h1 class="text-2xl font-bold text-gray-900 mb-8">发布二手闲置</h1>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">物品名称 *</label>
+                <input type="text" name="title" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="例如：九成新 iPad / 二手自行车">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">物品类型 *</label>
+                    <select name="category" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                        {% for c in categories %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">价格 (元) *</label>
+                    <input type="number" name="price" required step="0.01" min="0" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="0.00">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">品牌 / 作者（可选）</label>
+                    <input type="text" name="author" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="如：Apple / 张三">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">型号 / 出版社（可选）</label>
+                    <input type="text" name="publisher" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="如：iPad 9 / 清华出版社">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">成色 *</label>
+                <select name="condition" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none">
+                    <option value="全新">全新</option>
+                    <option value="良好">良好</option>
+                    <option value="一般">一般</option>
+                    <option value="较差">较差</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">描述</label>
+                <textarea name="description" rows="4" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none" placeholder="描述物品的使用情况、入手渠道、瑕疵等..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">封面图片 <span class="text-red-400">*</span></label>
+                <p class="text-xs text-gray-400 mb-2">物品的主展示图，只可上传一张。在列表和详情页顶部显示。</p>
+                <div class="flex items-start gap-4">
+                    <label class="flex-shrink-0 w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors group" id="cover-label">
+                        <div class="text-center">
+                            <svg class="w-8 h-8 mx-auto text-gray-400 group-hover:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                            <span class="mt-1 block text-xs text-gray-400 group-hover:text-green-500">选择封面</span>
+                        </div>
+                        <input type="file" name="cover" accept="image/*" id="cover-input" class="hidden" onchange="previewCover(this)">
+                    </label>
+                    <img id="cover-preview" class="w-32 h-32 object-cover rounded-xl hidden" src="">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">描述图片 <span class="text-gray-400 font-normal">（可选，最多 9 张）</span></label>
+                <p class="text-xs text-gray-400 mb-2">展示物品细节、瑕疵、配件等，可一次选择多张。</p>
+                <div class="flex flex-wrap gap-3" id="desc-previews"></div>
+                <label class="mt-3 inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>添加描述图片
+                    <input type="file" name="desc_images" accept="image/*" multiple class="hidden" onchange="previewDescImages(this)">
+                </label>
+            </div>
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-lg transition-all" id="submit-btn">发布闲置</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 封面图片预览（单张替换）
+function previewCover(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        var img = document.getElementById('cover-preview');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        document.getElementById('cover-label').querySelector('.text-center').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// 描述图片 - 全局文件队列（解决浏览器多次选择替换的问题）
+var descFileQueue = [];
+
+function previewDescImages(input) {
+    if (!input.files.length) return;
+    var maxTotal = 9;
+    var files = Array.from(input.files).filter(function(f) { return f.type.startsWith('image/'); });
+    var room = maxTotal - descFileQueue.length;
+    if (room <= 0) { alert('描述图片最多 ' + maxTotal + ' 张'); input.value = ''; return; }
+    var toAdd = files.slice(0, room);
+    var container = document.getElementById('desc-previews');
+    toAdd.forEach(function(file) {
+        descFileQueue.push(file);
+        var reader = new FileReader();
+        reader.onload = (function(f) {
+            return function(e) {
+                var wrap = document.createElement('div');
+                wrap.className = 'relative w-24 h-24 flex-shrink-0';
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-full h-full object-cover rounded-xl border border-gray-200';
+                var del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-600';
+                del.textContent = '\u00d7';
+                del.onclick = function() {
+                    descFileQueue = descFileQueue.filter(function(x) { return x !== f; });
+                    wrap.remove();
+                };
+                wrap.appendChild(img);
+                wrap.appendChild(del);
+                container.appendChild(wrap);
+            };
+        })(file);
+        reader.readAsDataURL(file);
+    });
+    input.value = '';
+    if (files.length > room) alert('超出上限，仅添加了前 ' + room + ' 张');
+}
+
+// 拦截表单提交，把缓存的文件注入 FormData
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var fd = new FormData(this);
+    fd.delete('desc_images');
+    descFileQueue.forEach(function(f) { fd.append('desc_images', f); });
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '发布中...';
+    fetch(this.action, { method: 'POST', body: fd })
+        .then(function(r) {
+            if (r.redirected) window.location.href = r.url;
+            else return r.text().then(function(html) { document.documentElement.innerHTML = html; });
+        })
+        .catch(function() { btn.disabled = false; btn.textContent = '发布闲置'; });
+});
+</script>
+{% endblock %}

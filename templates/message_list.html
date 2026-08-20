@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}消息通知 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-slide-up">
+    <h1 class="text-2xl font-bold text-gray-900 mb-8">消息通知</h1>
+
+    {% if notifications %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {% for n in notifications %}
+        <div class="p-5 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors {% if not n.is_read %}bg-blue-50/30{% endif %}">
+            <div class="flex items-start space-x-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+                    {% if n.type == 'comment' %}bg-purple-100 text-purple-600
+                    {% elif n.type == 'like' %}bg-red-100 text-red-500
+                    {% elif n.type == 'application' %}bg-orange-100 text-orange-600
+                    {% elif n.type == 'message' %}bg-green-100 text-green-600
+                    {% elif n.type == 'review' %}bg-yellow-100 text-yellow-600
+                    {% else %}bg-blue-100 text-blue-600{% endif %}">
+                    {% if n.type == 'comment' %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    {% elif n.type == 'like' %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    {% elif n.type == 'application' %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {% else %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-gray-900">{{ n.title }}</h4>
+                        <span class="text-xs text-gray-400 flex-shrink-0 ml-2">{{ n.created_at.strftime('%m-%d %H:%M') }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-600">{{ n.content }}</p>
+                    {% if n.link %}
+                    <a href="{{ n.link }}" class="mt-2 inline-block text-xs text-blue-600 hover:text-blue-700 font-medium">查看详情 →</a>
+                    {% endif %}
+                </div>
+                {% if not n.is_read %}
+                <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="mt-6 flex justify-center">
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50">上一页</a>{% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}<a href="?page={{ p }}" class="px-4 py-2 {% if p==pagination.page %}bg-blue-600 text-white{% else %}bg-white border{% endif %} rounded-lg text-sm">{{ p }}</a>{% else %}<span class="px-2 py-2 text-gray-400">...</span>{% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50">下一页</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-20">
+        <svg class="w-20 h-20 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <p class="mt-4 text-gray-500 text-lg">暂无消息</p>
+        <p class="text-sm text-gray-400">当有人回复你的帖子或向你发送消息时，通知会显示在这里</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

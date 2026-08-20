@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} - 论坛 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 animate-slide-up">
+        <div>
+            <div class="flex items-center text-sm text-gray-400 mb-2">
+                <a href="{{ url_for('forum.index') }}" class="hover:text-purple-600">论坛首页</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-600">{{ category.name }}</span>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ category.icon }} {{ category.name }}</h1>
+        </div>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('forum.create') }}" class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            发帖
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- 搜索 -->
+    <form class="mb-6" method="GET">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" name="q" value="{{ keyword }}" placeholder="搜索帖子..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none">
+        </div>
+    </form>
+
+    {% if posts %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {% for p in posts %}
+        <a href="{{ url_for('forum.post', id=p.id) }}" class="flex items-center px-6 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center space-x-2">
+                    {% if p.is_pinned %}<span class="px-2 py-0.5 bg-red-50 text-red-500 text-xs font-medium rounded">置顶</span>{% endif %}
+                    <h3 class="font-medium text-gray-900 truncate hover:text-purple-600 transition-colors">{{ p.title }}</h3>
+                </div>
+                <div class="mt-1.5 flex items-center text-xs text-gray-400 space-x-3">
+                    <span>{{ p.author.username }}</span>
+                    <span>{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 text-xs text-gray-400 ml-4">
+                <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ p.views }}</span>
+                <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>{{ p.comment_count }}</span>
+                <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>{{ p.like_count }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="mt-6 flex justify-center">
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}
+            <a href="?page={{ pagination.prev_num }}&q={{ keyword }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">上一页</a>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <a href="?page={{ p }}&q={{ keyword }}" class="px-4 py-2 {% if p == pagination.page %}bg-purple-600 text-white{% else %}bg-white border border-gray-200{% endif %} rounded-lg text-sm">{{ p }}</a>
+            {% else %}
+            <span class="px-2 py-2 text-gray-400">...</span>
+            {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next_num }}&q={{ keyword }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">下一页</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-20">
+        <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <p class="mt-4 text-gray-500">暂无帖子，来发布第一个吧！</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

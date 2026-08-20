@@ -1,0 +1,29 @@
+# Auto-detect text files and handle line endings
+# On Windows, checkout CRLF / commit LF so Linux server receives LF
+* text=auto eol=lf
+
+# Shell scripts must stay LF on all platforms
+*.sh    text eol=lf
+
+# Python / JS / CSS: keep code files as LF for Linux server compatibility
+*.py    text eol=lf
+*.js    text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.json  text eol=lf
+*.sql   text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+
+# Binary files (images, archives) → never touch line endings
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.tar   binary
+*.db    binary

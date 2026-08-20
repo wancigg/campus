@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}聊天 - 校桥{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">聊天</h1>
+            <p class="text-gray-500 text-sm mt-1">与好友私聊或参与群聊</p>
+        </div>
+        <a href="{{ url_for('chat.group_create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-xl hover:shadow-lg transition-all">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>创建群聊
+        </a>
+    </div>
+
+    <!-- 私聊列表 -->
+    {% if friend_chats %}
+    <div class="mb-8">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">私聊</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+            {% for chat in friend_chats %}
+            <a href="{{ url_for('chat.friend_chat', user_id=chat.partner.id) }}" class="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors">
+                <div class="relative flex-shrink-0">
+                    {% if chat.partner.avatar %}
+                    <img src="{{ url_for('uploaded_file', key=chat.partner.avatar) }}" class="w-10 h-10 rounded-full object-cover">
+                    {% else %}
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-sm font-bold">{{ chat.partner.username[0].upper() }}</div>
+                    {% endif %}
+                    {% if chat.unread > 0 %}
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{{ chat.unread if chat.unread < 99 else '99+' }}</span>
+                    {% endif %}
+                </div>
+                <div class="ml-3 flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-gray-900 text-sm">{{ chat.partner.username }}</span>
+                        <span class="text-xs text-gray-400">{{ chat.last_time_str }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 群聊列表 -->
+    {% if my_groups %}
+    <div>
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">群聊</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+            {% for g in my_groups %}
+            <a href="{{ url_for('chat.group_chat', group_id=g.id) }}" class="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-400 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div class="ml-3 flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-gray-900 text-sm">{{ g.name }}</span>
+                        <span class="text-xs text-gray-400">{{ g.member_count }} 人</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not friend_chats and not my_groups %}
+    <div class="text-center py-20">
+        <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <p class="mt-4 text-gray-500">暂无聊天记录</p>
+        <p class="text-sm text-gray-400 mt-1">添加好友后即可开始私聊</p>
+        <a href="{{ url_for('social.discover') }}" class="mt-3 inline-block text-blue-600 text-sm font-medium hover:underline">去发现好友 →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
