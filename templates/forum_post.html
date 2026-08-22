@@ -40,7 +40,11 @@
             <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-red-200 text-red-500 text-sm font-medium rounded-lg hover:bg-red-50 transition-all duration-200 hover:shadow-sm">删除帖子</button>
         </form>
         {% endif %}
-        <div class="mt-4 flex items-center space-x-4">
+        <div class="mt-4 flex items-center space-x-4 flex-wrap gap-2">
+            <button onclick="runAISummary()" id="ai-summary-btn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:shadow-md hover:scale-[1.02] transition-all duration-200 text-sm active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span id="ai-summary-btn-text">AI 摘要</span>
+            </button>
             <button onclick="toggleLike({{ post.id }})" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg {% if user_liked %}bg-red-50 text-red-500{% else %}bg-gray-50 text-gray-500{% endif %} hover:bg-red-50 hover:text-red-500 transition-all duration-200 text-sm active:scale-95">
                 <svg class="w-4 h-4" fill="{% if user_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 <span id="like-count-{{ post.id }}">{{ post.like_count }}</span>
@@ -81,6 +85,25 @@
     </div>
 </div>
 
+<!-- AI 摘要弹窗 -->
+<div id="ai-summary-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 modal-overlay">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-pop-in">
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <h3 class="text-lg font-bold">AI 智能摘要</h3>
+            </div>
+            <button data-close-modal class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="ai-summary-body" class="max-h-[70vh] overflow-y-auto p-6">
+            <p class="text-gray-400 text-center py-8">点击帖子上的「AI 摘要」按钮开始生成。</p>
+        </div>
+    </div>
+</div>
+
 <!-- 图片预览遮罩层 -->
 <div id="imgModal" class="hidden fixed inset-0 z-50 bg-black/90 items-center justify-center" onclick="closePreview()">
     <button onclick="closePreview()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white bg-white/10 rounded-full transition-colors z-10">
@@ -92,6 +115,89 @@
 
 {% block scripts %}
 <script>
+// 打开 AI 摘要弹窗
+function openAISummaryModal() {
+    var modal = document.getElementById('ai-summary-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// 渲染 AI 摘要结果
+function renderAISummary(data) {
+    var body = document.getElementById('ai-summary-body');
+    var html = '';
+    if (data.error) {
+        html = '<div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm"><b>出错啦：</b>' + escapeHtml(data.error) + '</div>';
+    } else {
+        html = '';
+        if (data.summary) {
+            html += '<div class="mb-5"><div class="flex items-center space-x-1.5 text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2"><span class="inline-block w-1 h-4 bg-indigo-500 rounded-full"></span>摘要</div><p class="text-gray-700 leading-relaxed whitespace-pre-wrap">' + escapeHtml(data.summary) + '</p></div>';
+        }
+        if (data.key_points && data.key_points.length) {
+            html += '<div class="mb-5"><div class="flex items-center space-x-1.5 text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2"><span class="inline-block w-1 h-4 bg-purple-500 rounded-full"></span>核心观点</div><ul class="space-y-2">';
+            data.key_points.forEach(function (p) {
+                html += '<li class="flex space-x-2"><span class="flex-shrink-0 mt-1.5 w-1.5 h-1.5 bg-purple-400 rounded-full"></span><span class="text-gray-700 leading-relaxed">' + escapeHtml(p) + '</span></li>';
+            });
+            html += '</ul></div>';
+        }
+        if (data.tags && data.tags.length) {
+            html += '<div><div class="flex items-center space-x-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide mb-2"><span class="inline-block w-1 h-4 bg-green-500 rounded-full"></span>建议标签</div><div class="flex flex-wrap gap-2">';
+            data.tags.forEach(function (t) {
+                html += '<span class="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-100">#' + escapeHtml(t) + '</span>';
+            });
+            html += '</div></div>';
+        }
+    }
+    body.innerHTML = html;
+}
+
+// HTML 转义（防止 XSS）
+function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s == null ? '' : s);
+    return d.innerHTML;
+}
+
+// 点击 AI 摘要按钮
+function runAISummary() {
+    var btn = document.getElementById('ai-summary-btn');
+    var txt = document.getElementById('ai-summary-btn-text');
+    if (btn.classList.contains('pointer-events-none')) return;
+    if (!{{ current_user.is_authenticated | lower }}) {
+        alert('请先登录再使用 AI 摘要功能');
+        return;
+    }
+
+    // 按钮 loading
+    btn.classList.add('pointer-events-none', 'opacity-70');
+    var origText = txt.textContent;
+    txt.textContent = '生成中...';
+
+    openAISummaryModal();
+    document.getElementById('ai-summary-body').innerHTML =
+        '<div class="py-12 flex flex-col items-center justify-center space-y-3">' +
+        '<svg class="w-10 h-10 text-indigo-500 animate-spin" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>' +
+        '<p class="text-gray-500 text-sm">AI 正在阅读帖子，马上就好...</p></div>';
+
+    fetch('{{ url_for("forum.ai_summary", id=post.id) }}', {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+        renderAISummary(res.d);
+    })
+    .catch(function () {
+        renderAISummary({ error: '网络错误，请检查网络后重试。' });
+    })
+    .finally(function () {
+        btn.classList.remove('pointer-events-none', 'opacity-70');
+        txt.textContent = origText;
+    });
+}
+
 // 图片预览
 function openPreview(src) {
     var modal = document.getElementById('imgModal');
