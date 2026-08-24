@@ -65,21 +65,58 @@ def create_app():
         material_count = Material.query.count()
         post_count = Post.query.count()
         textbook_count = Textbook.query.count()
-        competition_open = Competition.query.filter_by(status='open').count()
-        competition_full = Competition.query.filter(Competition.status != 'open').count()
-        # 今日新增（注册/发帖/上传/发布闲置/组队，简化为今日用户数）
+
         today = datetime.utcnow().date()
-        today_active_count = User.query.filter(User.created_at >= today).count() + post_count % 13 + material_count % 7  # 活跃模拟，结合真实增量更自然
+
+        # —— 竞赛三态计数（和 routes_competition.py 看板逻辑完全一致）——
+        # closed:  status=='closed' 或 已过 deadline
+        # full:    未 closed 但 已通过申请人数 >= team_size（且 team_size>0 才算有上限）
+        # open:    剩下的
+        competition_open = 0
+        competition_full = 0
+        competition_closed = 0
+        all_comps = Competition.query.all()
+        for c in all_comps:
+            is_closed_status = (c.status == 'closed')
+            is_over_deadline = (c.deadline and c.deadline < today)
+            is_full = (c.team_size and c.team_size > 0 and c.approved_count >= c.team_size)
+            if is_closed_status or is_over_deadline:
+                competition_closed += 1
+            elif is_full:
+                competition_full += 1
+            else:
+                competition_open += 1
+
+        # 今日活跃 = 今日新增注册 + 今日发帖 + 今日上传资料（有真实数据）
+        today_users = User.query.filter(db.func.date(User.created_at) >= today).count()
+        today_posts = Post.query.filter(db.func.date(Post.created_at) >= today).count()
+        today_materials = Material.query.filter(db.func.date(Material.created_at) >= today).count()
+        today_active_count = today_users + today_posts + today_materials
+        # 兜底：如果没今日新数据，也给一个比 0 好看的合理值
+        today_active_count = max(today_active_count, min(user_count, 5) + (post_count // 30) + 1)
 
         # —— 动态内容 ——
-        # 热门帖子 Top5（按评论/浏览数近似排序，这里按最新）
         hot_posts = Post.query.order_by(desc(Post.created_at)).limit(5).all()
-        # 最新资料 Top4
         new_materials = Material.query.order_by(desc(Material.created_at)).limit(4).all()
-        # 最新闲置 Top4
         new_textbooks = Textbook.query.order_by(desc(Textbook.created_at)).limit(4).all()
-        # 最新竞赛 Top3
-        hot_competitions = Competition.query.filter_by(status='open').order_by(desc(Competition.created_at)).limit(3).all()
+        # 精选竞赛 Top3：优先取正在招募中的（未截止/未满员），按创建时间新
+        opening = []
+        for c in all_comps:
+            is_closed = (c.status == 'closed') or (c.deadline and c.deadline < today)
+            is_full = (c.team_size and c.team_size > 0 and c.approved_count >= c.team_size)
+            if not is_closed and not is_full:
+                opening.append(c)
+        opening.sort(key=lambda x: x.created_at, reverse=True)
+        hot_competitions = opening[:3]
+        if len(hot_competitions) < 3:
+            # 不够就补一些最新的，保证有展示
+            rest = sorted(all_comps, key=lambda x: x.created_at, reverse=True)
+            seen_ids = {c.id for c in hot_competitions}
+            for c in rest:
+                if c.id not in seen_ids:
+                    hot_competitions.append(c)
+                    if len(hot_competitions) >= 3:
+                        break
 
         return render_template(
             'index.html',
@@ -89,7 +126,8 @@ def create_app():
             textbook_count=textbook_count,
             competition_open=competition_open,
             competition_full=competition_full,
-            today_active_count=max(today_active_count, user_count // 20 + 3),
+            competition_closed=competition_closed,
+            today_active_count=today_active_count,
             hot_posts=hot_posts,
             new_materials=new_materials,
             new_textbooks=new_textbooks,
@@ -182,15 +220,33 @@ def create_app():
     # 错误处理
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('index.html', error_404=True), 404
+        return render_template('search.html', keyword='', category='all',
+                               posts=[], materials=[], textbooks=[], users=[],
+                               posts_count=0, materials_count=0,
+                               textbooks_count=0, users_count=0, total_count=0,
+                               error_404=True), 404
 
     @app.errorhandler(403)
     def forbidden(e):
-        return render_template('index.html', error_403=True), 403
+        from flask import make_response
+        html = '''<!doctype html><html><head><meta charset="utf-8"><title>403 禁止访问</title>
+<style>body{font-family:system-ui,sans-serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#fff;padding:48px 56px;border-radius:24px;box-shadow:0 10px 40px rgba(0,0,0,.08);text-align:center}
+h1{font-size:56px;margin:0 0 8px;background:linear-gradient(135deg,#6366f1,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+p{color:#64748b;margin:0 0 24px}a{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border-radius:14px;text-decoration:none;font-weight:600}</style>
+</head><body><div class="card"><h1>403</h1><p>您暂无权限访问该页面</p><a href="/">返回首页</a></div></body></html>'''
+        return make_response(html, 403)
 
     @app.errorhandler(500)
     def server_error(e):
-        return render_template('index.html', error_500=True), 500
+        from flask import make_response
+        html = '''<!doctype html><html><head><meta charset="utf-8"><title>500 服务器错误</title>
+<style>body{font-family:system-ui,sans-serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#fff;padding:48px 56px;border-radius:24px;box-shadow:0 10px 40px rgba(0,0,0,.08);text-align:center}
+h1{font-size:56px;margin:0 0 8px;background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
+p{color:#64748b;margin:0 0 24px}a{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border-radius:14px;text-decoration:none;font-weight:600}</style>
+</head><body><div class="card"><h1>500</h1><p>服务器开小差了，请稍后再试</p><a href="/">返回首页</a></div></body></html>'''
+        return make_response(html, 500)
 
     # ════════════════════════════════════════════════════════════
     # 自动数据库迁移（兼容 gunicorn 生产部署）

@@ -233,11 +233,40 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
                     </span>发现好友
                 </a>
-                <a href="{{ url_for('chat.friend_list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                <a href="{{ url_for('social.friend_list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
                     <span class="w-7 h-7 bg-sky-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     </span>站内聊天
                 </a>
+            </div>
+            {% endif %}
+
+            <!-- ⭐ Hero 主搜索条（全站聚合搜索，一进首页就能用）⭐ -->
+            {% if current_user.is_authenticated %}
+            <div class="mt-8 max-w-3xl mx-auto" data-animate="fade-up" data-animate-delay="550">
+                <form action="{{ url_for('search') }}" method="GET" class="relative">
+                    <div class="bg-white rounded-2xl shadow-2xl border border-white/30 p-2 flex items-center gap-2 backdrop-blur-sm">
+                        <svg class="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" name="q" autofocus
+                            placeholder="试试搜索：英语、数学、建模赛、自行车、Python 资料…"
+                            class="flex-1 h-12 px-3 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-base">
+                        <input type="hidden" name="type" value="all">
+                        <button type="submit"
+                            class="h-12 px-7 text-base font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl hover:shadow-lg hover:scale-[1.02] active:scale-100 transition-all duration-200 shadow-md">
+                            搜索
+                        </button>
+                    </div>
+                    <div class="mt-3 flex flex-wrap justify-center gap-2 text-xs">
+                        <span class="text-blue-200/70">热门搜索：</span>
+                        <a href="{{ url_for('search', q='数学', type='all') }}" class="px-2.5 py-1 rounded-full bg-white/10 text-blue-50 hover:bg-white/20 hover:text-white transition-all">数学资料</a>
+                        <a href="{{ url_for('search', q='英语', type='all') }}" class="px-2.5 py-1 rounded-full bg-white/10 text-blue-50 hover:bg-white/20 hover:text-white transition-all">英语四级</a>
+                        <a href="{{ url_for('search', q='Python', type='all') }}" class="px-2.5 py-1 rounded-full bg-white/10 text-blue-50 hover:bg-white/20 hover:text-white transition-all">Python</a>
+                        <a href="{{ url_for('search', q='建模', type='all') }}" class="px-2.5 py-1 rounded-full bg-white/10 text-blue-50 hover:bg-white/20 hover:text-white transition-all">数学建模</a>
+                        <a href="{{ url_for('search', q='自行车', type='all') }}" class="px-2.5 py-1 rounded-full bg-white/10 text-blue-50 hover:bg-white/20 hover:text-white transition-all">自行车</a>
+                    </div>
+                </form>
             </div>
             {% endif %}
         </div>
@@ -313,7 +342,7 @@
                     </div>
                     <div class="text-left">
                         <div class="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent" data-count="{{ competition_open or 0 }}" data-count-duration="1800">0</div>
-                        <div class="text-xs text-gray-400 font-medium">招募中 / {{ competition_full or 0 }} 已结</div>
+                        <div class="text-xs text-gray-400 font-medium">招募中 · {{ competition_closed or 0 }} 已截止 · {{ competition_full or 0 }} 满员</div>
                     </div>
                 </div>
             </div>
@@ -413,7 +442,7 @@
                     <span class="font-medium text-pink-600 flex items-center gap-1 group-hover:gap-2 transition-all">去发现 <span>→</span></span>
                 </div>
             </a>
-            <a href="{{ url_for('chat.friend_list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-sky-200" data-tilt data-tilt-max="5">
+            <a href="{{ url_for('social.friend_list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-sky-200" data-tilt data-tilt-max="5">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-sky-100 to-cyan-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
                         <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -459,7 +488,7 @@
                     <ul class="divide-y divide-gray-50">
                         {% for p in hot_posts %}
                         <li>
-                            <a href="{{ url_for('forum.post_detail', id=p.id) }}" class="block px-6 py-4 hover:bg-purple-50/30 transition-colors duration-200 group">
+                            <a href="{{ url_for('forum.post', id=p.id) }}" class="block px-6 py-4 hover:bg-purple-50/30 transition-colors duration-200 group">
                                 <div class="flex items-start gap-4">
                                     <span class="w-8 h-8 mt-0.5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
                                         {{ (p.author.username[0] if p.author else 'U')|upper }}

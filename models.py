@@ -196,7 +196,7 @@ class Post(db.Model):
                             cascade='all, delete-orphan')
     favorites = db.relationship('PostFavorite', backref='post', lazy='dynamic',
                                 cascade='all, delete-orphan')
-    images = db.relationship('PostImage', backref='post', lazy='dynamic',
+    images = db.relationship('PostImage', backref='post', lazy='select',
                              cascade='all, delete-orphan', order_by='PostImage.sort_order')
 
     @property
