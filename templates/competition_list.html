@@ -2,15 +2,15 @@
 {% block title %}竞赛组队 - 校桥{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+<div class="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6" data-animate="fade-up">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">竞赛组队</h1>
-                <p class="text-gray-500 text-sm mt-0.5">寻找队友，一起参赛</p>
+                <p class="text-gray-500 text-sm mt-0.5">看板视图 · 实时掌握招募进度 · 找到你的队友</p>
             </div>
         </div>
         {% if current_user.is_authenticated %}
@@ -21,84 +21,312 @@
         {% endif %}
     </div>
 
+    {# ============ A方案：顶部3个带色数字卡 ============ #}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" data-animate-stagger="60">
+        <a href="#kanban-opening" class="stagger-item block bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+            <div class="absolute right-8 bottom-2 w-14 h-14 bg-white/10 rounded-3xl rotate-12"></div>
+            <div class="relative flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+                    <span class="w-3 h-3 rounded-full bg-white animate-pulse"></span>
+                </div>
+                <div>
+                    <div class="text-xs text-green-100 font-semibold tracking-wide uppercase">🟢 招募中</div>
+                    <div class="text-4xl font-black mt-1">{{ open_count or 0 }}</div>
+                    <div class="text-[11px] text-green-100 mt-0.5">名额未满 · 可申请加入</div>
+                </div>
+            </div>
+        </a>
+        <a href="#kanban-full" class="stagger-item block bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+            <div class="absolute -left-3 -bottom-3 w-20 h-20 bg-white/10 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+            <div class="relative flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+                </div>
+                <div>
+                    <div class="text-xs text-orange-100 font-semibold tracking-wide uppercase">🟠 已满员</div>
+                    <div class="text-4xl font-black mt-1">{{ full_count or 0 }}</div>
+                    <div class="text-[11px] text-orange-100 mt-0.5">队已成型 · 等待开赛</div>
+                </div>
+            </div>
+        </a>
+        <a href="#kanban-closed" class="stagger-item block bg-gradient-to-br from-slate-500 to-gray-600 text-white rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+            <div class="absolute -right-3 -bottom-6 w-24 h-24 bg-white/10 rounded-full group-hover:scale-125 transition-transform duration-500"></div>
+            <div class="relative flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-200 font-semibold tracking-wide uppercase">⚫ 已截止</div>
+                    <div class="text-4xl font-black mt-1">{{ closed_count or 0 }}</div>
+                    <div class="text-[11px] text-slate-200 mt-0.5">已结束 / 过了报名期</div>
+                </div>
+            </div>
+        </a>
+    </div>
+
     <!-- 类型筛选 -->
     <div class="flex flex-wrap gap-2 mb-6" data-animate="fade-up" data-animate-delay="60">
-        <a href="?type=" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if not comp_type %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+        <a href="?type=" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if not comp_type %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
             全部
         </a>
-        <a href="?type=学科竞赛" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '学科竞赛' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+        <a href="?type=学科竞赛" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '学科竞赛' %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             学科竞赛
         </a>
-        <a href="?type=创新创业" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '创新创业' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+        <a href="?type=创新创业" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '创新创业' %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             创新创业
         </a>
-        <a href="?type=文艺体育" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '文艺体育' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+        <a href="?type=文艺体育" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '文艺体育' %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             文艺体育
         </a>
-        <a href="?type=其他" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '其他' %}bg-orange-600 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
+        <a href="?type=其他" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 {% if comp_type == '其他' %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:-translate-y-0.5{% endif %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
             其他
         </a>
     </div>
 
-    {% if competitions %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger="70">
-        {% for c in competitions %}
-        <a href="{{ url_for('competition.detail', id=c.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover:border-orange-200" data-tilt data-tilt-max="4">
-            <div class="flex items-center justify-between mb-3">
-                <span class="px-2.5 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full flex items-center gap-1">
-                    <span class="w-1 h-1 rounded-full bg-orange-400"></span>{{ c.comp_type }}
-                </span>
-                <span class="text-xs {% if c.status == 'open' %}text-green-600 bg-green-50 px-2 py-0.5 rounded-full{% else %}text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full{% endif %} font-medium">
-                    {{ '招募中' if c.status == 'open' else '已关闭' }}
-                </span>
+    {# ============ B方案：3 列看板布局（Trello 风格） ============ #}
+    <div id="kanban" class="grid grid-cols-1 lg:grid-cols-3 gap-5" data-animate="fade-up" data-animate-delay="100">
+
+        {# ====== 第 1 列：招募中 ====== #}
+        <div id="kanban-opening" class="rounded-3xl bg-gradient-to-b from-emerald-50 to-white border border-emerald-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-5 py-4 bg-gradient-to-r from-emerald-500/95 to-green-500/95 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+                    <span class="font-bold">招募中</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-white/25 backdrop-blur-sm">{{ open_count or 0 }}</span>
+                </div>
+                <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
             </div>
-            <h3 class="text-base font-bold text-gray-900 group-hover:text-orange-600 transition-colors duration-200 line-clamp-1">{{ c.title }}</h3>
-            <p class="mt-2 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ c.description }}</p>
-            <div class="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-                <span class="flex items-center gap-1.5">
-                    <span class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-300 to-red-300 flex items-center justify-center text-white text-[10px] font-bold">{{ c.owner.username[0].upper() }}</span>
-                    {{ c.owner.username }}
-                </span>
-                <span class="flex items-center gap-3">
-                    <span class="flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
-                        {{ c.approved_count }}/{{ c.team_size or '不限' }}
-                    </span>
-                    {% if c.deadline %}
-                    <span class="flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        {{ c.deadline.strftime('%m-%d') }}截止
-                    </span>
-                    {% endif %}
-                </span>
+            <div class="p-3 sm:p-4 space-y-3 flex-1 min-h-[200px] overflow-y-auto max-h-[70vh]">
+                {% if col_opening %}
+                    {% for c in col_opening %}
+                    <a href="{{ url_for('competition.detail', id=c.id) }}"
+                       class="group block rounded-2xl bg-white border border-emerald-100 hover:border-emerald-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+
+                        {# 顶部：招募进度条（approved_count / team_size） #}
+                        {% set total = c.team_size if c.team_size and c.team_size > 0 else (c.approved_count + 3) %}
+                        {% set pct = (c.approved_count / total * 100) if total > 0 else 0 %}
+                        <div class="h-1.5 w-full bg-emerald-100 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-500 group-hover:from-emerald-500 group-hover:to-teal-500"
+                                 style="width: {{ [pct, 95]|min }}%"></div>
+                        </div>
+
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full
+                                    {% if c.comp_type == '学科竞赛' %}bg-blue-50 text-blue-700
+                                    {% elif c.comp_type == '创新创业' %}bg-purple-50 text-purple-700
+                                    {% elif c.comp_type == '文艺体育' %}bg-pink-50 text-pink-700
+                                    {% else %}bg-gray-50 text-gray-600{% endif %}">
+                                    {{ c.comp_type }}
+                                </span>
+                                {% if c.deadline %}
+                                    {% set days_left = (c.deadline - today).days %}
+                                    <span class="text-[10px] font-bold flex items-center gap-0.5
+                                        {% if days_left <= 3 %}text-red-500 bg-red-50 px-2 py-0.5 rounded-full
+                                        {% else %}text-emerald-600{% endif %}">
+                                        {% if days_left > 0 %}⏳ {{ days_left }}天后截止
+                                        {% else %}今天截止{% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-2 leading-snug">
+                                {{ c.title }}
+                            </h3>
+                            <p class="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">{{ c.description|striptags|truncate(60, True, '...') }}</p>
+
+                            {# 招募进度文字 #}
+                            <div class="mt-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex -space-x-1.5">
+                                        {% if c.owner %}
+                                        <div class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-red-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-bold shadow-sm">
+                                            {{ c.owner.username[0]|upper if c.owner.username else 'O' }}
+                                        </div>
+                                        {% endif %}
+                                        {% set remain = (total - c.approved_count) %}
+                                        {% for i in range([remain, 3]|min) %}
+                                        <div class="w-6 h-6 rounded-full bg-gray-100 border-2 border-white border-dashed flex items-center justify-center text-gray-300">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-600">
+                                        {{ c.approved_count }}/{{ total }}
+                                    </span>
+                                </div>
+                                <span class="text-[11px] text-emerald-500 font-semibold opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-2 transition-all whitespace-nowrap">
+                                    申请加入 →
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="py-10 text-center">
+                    <div class="text-4xl mb-2">🌱</div>
+                    <p class="text-sm text-gray-400">暂无招募中的队伍</p>
+                </div>
+                {% endif %}
             </div>
-        </a>
-        {% endfor %}
+        </div>
+
+        {# ====== 第 2 列：已满员 ====== #}
+        <div id="kanban-full" class="rounded-3xl bg-gradient-to-b from-amber-50 to-white border border-amber-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-5 py-4 bg-gradient-to-r from-amber-500/95 to-orange-500/95 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                    <span class="font-bold">已满员</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-white/25 backdrop-blur-sm">{{ full_count or 0 }}</span>
+                </div>
+                <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+            </div>
+            <div class="p-3 sm:p-4 space-y-3 flex-1 min-h-[200px] overflow-y-auto max-h-[70vh]">
+                {% if col_full %}
+                    {% for c in col_full %}
+                    <a href="{{ url_for('competition.detail', id=c.id) }}"
+                       class="group block rounded-2xl bg-white border border-amber-100 hover:border-amber-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+
+                        {# 进度条：100% #}
+                        <div class="h-1.5 w-full bg-amber-100 overflow-hidden">
+                            <div class="h-full w-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all"></div>
+                        </div>
+
+                        <div class="p-4 relative">
+                            {# 满员印章（斜角水印） #}
+                            <div class="absolute top-2 right-2 pointer-events-none opacity-80">
+                                <div class="px-3 py-0.5 border-2 border-amber-400 text-amber-600 text-[10px] font-black rounded-md -rotate-6 bg-amber-50/70 backdrop-blur-sm">
+                                    满员 ✓
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full
+                                    {% if c.comp_type == '学科竞赛' %}bg-blue-50 text-blue-700
+                                    {% elif c.comp_type == '创新创业' %}bg-purple-50 text-purple-700
+                                    {% elif c.comp_type == '文艺体育' %}bg-pink-50 text-pink-700
+                                    {% else %}bg-gray-50 text-gray-600{% endif %}">
+                                    {{ c.comp_type }}
+                                </span>
+                            </div>
+
+                            <h3 class="font-bold text-gray-900 group-hover:text-amber-700 transition-colors line-clamp-2 leading-snug pr-12">
+                                {{ c.title }}
+                            </h3>
+                            <p class="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">{{ c.description|striptags|truncate(50, True, '...') }}</p>
+
+                            <div class="mt-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100/70 text-amber-700 text-[10px] font-bold">
+                                        👥 {{ c.approved_count }}/{{ c.team_size or '不限' }}
+                                    </span>
+                                </div>
+                                {% if c.owner %}
+                                <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <div class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white font-bold">
+                                        {{ c.owner.username[0]|upper if c.owner.username else 'O' }}
+                                    </div>
+                                    <span class="truncate max-w-[50px]">{{ c.owner.username }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="py-10 text-center">
+                    <div class="text-4xl mb-2">🏃‍♂️</div>
+                    <p class="text-sm text-gray-400">暂无满员队伍</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ====== 第 3 列：已截止 / 已关闭 ====== #}
+        <div id="kanban-closed" class="rounded-3xl bg-gradient-to-b from-slate-50 to-white border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-5 py-4 bg-gradient-to-r from-slate-500/95 to-gray-600/95 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white/70"></span>
+                    <span class="font-bold">已截止</span>
+                    <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-white/25 backdrop-blur-sm">{{ closed_count or 0 }}</span>
+                </div>
+                <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="p-3 sm:p-4 space-y-3 flex-1 min-h-[200px] overflow-y-auto max-h-[70vh]">
+                {% if col_closed %}
+                    {% for c in col_closed %}
+                    <a href="{{ url_for('competition.detail', id=c.id) }}"
+                       class="group block rounded-2xl bg-white/60 backdrop-blur-sm border border-slate-200/70 hover:border-slate-300 hover:bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden opacity-90 hover:opacity-100">
+
+                        {# 灰色进度条（完结） #}
+                        <div class="h-1.5 w-full bg-slate-200 overflow-hidden">
+                            <div class="h-full w-full bg-slate-400"></div>
+                        </div>
+
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 text-slate-600">
+                                    {{ c.comp_type }}
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                                    {% if c.status == 'closed' %}✓ 已关闭
+                                    {% elif c.deadline and c.deadline < today %}⏰ {{ c.deadline.strftime('%m/%d') }} 截止
+                                    {% else %}已结束{% endif %}
+                                </span>
+                            </div>
+
+                            <h3 class="font-bold text-gray-700 group-hover:text-slate-900 transition-colors line-clamp-2 leading-snug">
+                                {{ c.title }}
+                            </h3>
+                            <p class="mt-1.5 text-xs text-gray-400 line-clamp-1">{{ c.description|striptags|truncate(40, True, '...') }}</p>
+
+                            <div class="mt-3 flex items-center justify-between text-[10px] text-slate-400">
+                                <span>最终人数：{{ c.approved_count }}/{{ c.team_size or '不限' }}</span>
+                                <span class="group-hover:text-slate-600 transition-colors">查看详情 →</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="py-10 text-center">
+                    <div class="text-4xl mb-2">🏆</div>
+                    <p class="text-sm text-gray-400">暂无已结束的竞赛</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
-    {% if pagination.pages > 1 %}
-    <div class="mt-8 flex justify-center" data-animate="fade-up" data-animate-delay="200">
-        <div class="flex space-x-1">
-            {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">上一页</a>{% endif %}
-            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-            {% if p %}<a href="?page={{ p }}&type={{ comp_type }}" class="px-4 py-2 {% if p==pagination.page %}bg-orange-600 text-white shadow-md{% else %}bg-white border{% endif %} rounded-lg text-sm transition-all duration-200 hover:-translate-y-0.5">{{ p }}</a>{% else %}<span class="px-2 py-2 text-gray-400">...</span>{% endif %}
-            {% endfor %}
-            {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">下一页</a>{% endif %}
+    {# 老数据卡片视图：如果看板为空就隐藏，否则放底部（带分页） #}
+    {% if competitions and pagination and pagination.pages > 1 %}
+    <div class="mt-10 flex justify-center" data-animate="fade-up">
+        <div class="text-center">
+            <div class="text-xs text-gray-400 mb-3">更多历史竞赛请翻页（每页 12 条）</div>
+            <div class="flex space-x-1 justify-center">
+                {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">上一页</a>{% endif %}
+                {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}<a href="?page={{ p }}&type={{ comp_type }}" class="px-4 py-2 {% if p==pagination.page %}bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md{% else %}bg-white border{% endif %} rounded-lg text-sm transition-all duration-200 hover:-translate-y-0.5">{{ p }}</a>{% else %}<span class="px-2 py-2 text-gray-400">...</span>{% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}&type={{ comp_type }}" class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-all duration-200 hover:-translate-y-0.5">下一页</a>{% endif %}
+            </div>
         </div>
     </div>
     {% endif %}
 
-    {% else %}
-    <div class="text-center py-20" data-animate="scale-in">
+    {# 如果真的一条数据都没有 #}
+    {% set total_all = (open_count or 0) + (full_count or 0) + (closed_count or 0) %}
+    {% if total_all == 0 %}
+    <div class="text-center py-20 mt-4 bg-white rounded-3xl border border-dashed border-gray-200" data-animate="scale-in">
         <div class="empty-state-float">
-            <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
-        <p class="mt-4 text-gray-500">暂无竞赛招募</p>
+        <p class="mt-4 text-gray-500">暂无竞赛招募，快来发起第一个吧！</p>
     </div>
     {% endif %}
 </div>

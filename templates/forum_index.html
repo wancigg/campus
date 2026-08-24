@@ -4,14 +4,14 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- 头部 -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8" data-animate="fade-up">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6" data-animate="fade-up">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">校园论坛</h1>
-                <p class="text-gray-500 text-sm mt-0.5">选择板块，参与讨论</p>
+                <p class="text-gray-500 text-sm mt-0.5">聚合所有板块 · 发现校园正在讨论什么</p>
             </div>
         </div>
         {% if current_user.is_authenticated %}
@@ -22,28 +22,286 @@
         {% endif %}
     </div>
 
-    <!-- 分区卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger="80">
-        {% for cat in categories %}
-        <a href="{{ url_for('forum.category', cat_id=cat.id) }}" class="stagger-item group bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 hover:border-purple-200" data-tilt data-tilt-max="4">
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 group-hover:shadow-md transition-all duration-300 border border-purple-100/50">
-                    {{ cat.icon or '💬' }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors duration-200">{{ cat.name }}</h3>
-                    <p class="mt-1 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ cat.description or '精彩讨论，尽在此板块' }}</p>
+    {# ============ A方案：顶部4个统计小卡 ============ #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-animate-stagger="50">
+        <div class="stagger-item bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full"></div>
+            <div class="relative">
+                <div class="text-xs text-purple-100 font-medium">帖子总数</div>
+                <div class="text-3xl font-bold mt-1.5">{{ total_posts or 0 }}</div>
+                <div class="text-[11px] text-purple-100 mt-1 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    同学们的声音
                 </div>
             </div>
-            <div class="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs">
-                <span class="flex items-center gap-1 text-gray-400">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <span>{{ cat.posts.count() }} 个帖子</span>
-                </span>
-                <span class="text-purple-500 font-medium group-hover:gap-1.5 transition-all duration-200 inline-flex items-center gap-1">进入板块 <span>→</span></span>
+        </div>
+        <div class="stagger-item bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 relative overflow-hidden">
+            <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-white/10 rounded-full"></div>
+            <div class="relative">
+                <div class="text-xs text-blue-100 font-medium">总回复数</div>
+                <div class="text-3xl font-bold mt-1.5">{{ total_comments or 0 }}</div>
+                <div class="text-[11px] text-blue-100 mt-1 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    讨论热烈
+                </div>
             </div>
-        </a>
-        {% endfor %}
+        </div>
+        <div class="stagger-item bg-gradient-to-br from-rose-500 to-pink-500 text-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 relative overflow-hidden">
+            <div class="absolute -left-2 -top-2 w-14 h-14 bg-white/10 rounded-full"></div>
+            <div class="relative">
+                <div class="text-xs text-pink-100 font-medium">今日新帖</div>
+                <div class="text-3xl font-bold mt-1.5">{{ today_posts or 0 }}</div>
+                <div class="text-[11px] text-pink-100 mt-1 flex items-center gap-1">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-300 animate-pulse"></span>
+                    实时更新
+                </div>
+            </div>
+        </div>
+        <div class="stagger-item bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 relative">
+            <div class="text-xs text-gray-500 font-medium mb-2">🔥 热门板块 TOP3</div>
+            <div class="space-y-1.5">
+                {% for cat, cnt in hot_categories %}
+                <a href="{{ url_for('forum.category', cat_id=cat.id) }}" class="flex items-center justify-between group">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-5 h-5 flex items-center justify-center text-[10px] font-bold rounded-md
+                            {% if loop.index==1 %}bg-amber-100 text-amber-700{% elif loop.index==2 %}bg-gray-200 text-gray-600{% else %}bg-orange-100 text-orange-700{% endif %}">
+                            {{ loop.index }}
+                        </span>
+                        <span class="text-xs text-gray-700 font-medium truncate group-hover:text-purple-600 transition-colors">{{ cat.name }}</span>
+                    </div>
+                    <span class="text-[10px] text-gray-400 font-medium flex-shrink-0">{{ cnt }}帖</span>
+                </a>
+                {% else %}
+                <div class="text-xs text-gray-300">暂无数据</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {# ======== 分区快捷入口（横向滚动） ======== #}
+    <div class="mb-6" data-animate="fade-up" data-animate-delay="60">
+        <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span class="text-xs font-semibold text-gray-500">板块快捷入口</span>
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin">
+            {% for cat in categories %}
+            <a href="{{ url_for('forum.category', cat_id=cat.id) }}"
+               class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/60 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 text-sm font-medium text-gray-700 hover:text-purple-700">
+                <span class="text-lg">{{ cat.icon or '💬' }}</span>
+                {{ cat.name }}
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{{ cat.posts.count() }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# 搜索框 #}
+    <form class="mb-6" method="GET" data-animate="fade-up" data-animate-delay="80">
+        <div class="relative max-w-xl search-wrapper">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" name="q" value="{{ keyword or '' }}" placeholder="搜索论坛帖子标题..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none search-input transition-all duration-200">
+        </div>
+    </form>
+
+    {# ============ B方案：知乎式纵向资讯流 ============ #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-animate="fade-up" data-animate-delay="100">
+        {# 主列：资讯流（2/3 宽度） #}
+        <div class="lg:col-span-2 space-y-3.5">
+            <div class="flex items-center gap-2 mb-1 px-1">
+                <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    最新讨论 · 全板块聚合
+                </h2>
+                <span class="text-[11px] text-gray-400">按时间倒序 · 置顶优先</span>
+            </div>
+
+            {% if feed_posts %}
+                {% for p in feed_posts %}
+                <a href="{{ url_for('forum.post', id=p.id) }}" class="group block bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 hover:shadow-xl hover:border-purple-100 hover:-translate-y-0.5 transition-all duration-300">
+                    {# 知乎式：左头像+等级 / 中内容 / 右数据 三栏布局 #}
+                    <div class="flex gap-3 sm:gap-4">
+                        {# 左：作者头像 + 等级徽章（竖向） #}
+                        <div class="flex flex-col items-center gap-1.5 flex-shrink-0">
+                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-md
+                                {% if loop.index % 5 == 0 %}bg-gradient-to-br from-amber-400 to-orange-500
+                                {% elif loop.index % 5 == 1 %}bg-gradient-to-br from-purple-500 to-pink-500
+                                {% elif loop.index % 5 == 2 %}bg-gradient-to-br from-sky-500 to-indigo-500
+                                {% elif loop.index % 5 == 3 %}bg-gradient-to-br from-emerald-500 to-teal-500
+                                {% else %}bg-gradient-to-br from-rose-500 to-red-500{% endif %}">
+                                {{ p.author.username[0]|upper if p.author and p.author.username else 'U' }}
+                            </div>
+                            {% if p.author and p.author.level_badge %}
+                            <span class="px-1.5 py-0.5 text-[9px] sm:text-[10px] rounded {{ p.author.level_badge[2] }} border leading-tight whitespace-nowrap">
+                                Lv.{{ loop.index0 + 1 }} {{ p.author.level_badge[1] }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {# 中：标题 + 分类彩标 + 摘要 + 预览图 #}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
+                                {# 分类标签 #}
+                                {% if p.category %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-md
+                                    {% if p.category.id % 6 == 1 %}bg-purple-100 text-purple-700
+                                    {% elif p.category.id % 6 == 2 %}bg-blue-100 text-blue-700
+                                    {% elif p.category.id % 6 == 3 %}bg-emerald-100 text-emerald-700
+                                    {% elif p.category.id % 6 == 4 %}bg-amber-100 text-amber-700
+                                    {% elif p.category.id % 6 == 5 %}bg-rose-100 text-rose-700
+                                    {% else %}bg-sky-100 text-sky-700{% endif %}">
+                                    {{ p.category.icon or '#' }} {{ p.category.name }}
+                                </span>
+                                {% endif %}
+                                {% if p.is_pinned %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-sm">📌 置顶</span>
+                                {% endif %}
+                                <span class="text-[11px] text-gray-400 truncate">
+                                    {{ p.author.username if p.author else '匿名' }} ·
+                                    {{ p.created_at.strftime('%m-%d %H:%M') }}
+                                </span>
+                            </div>
+
+                            <h3 class="font-bold text-gray-900 text-base sm:text-lg group-hover:text-purple-600 transition-colors duration-200 leading-snug line-clamp-1 sm:line-clamp-2">
+                                {{ p.title }}
+                            </h3>
+
+                            <p class="mt-2 text-sm text-gray-500 leading-relaxed line-clamp-2">
+                                {{ p.content|striptags|truncate(100, True, '...') }}
+                            </p>
+
+                            {# 预览小图（最多2张） #}
+                            {% set imgs = p.images.limit(2).all() %}
+                            {% if imgs %}
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                {% for img in imgs %}
+                                <div class="aspect-video rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+                                    <img src="{{ url_for('uploaded_file', key=img.filename) }}"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                         alt="" loading="lazy">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {# 右：数据指标（竖排，大屏显示） #}
+                        <div class="hidden sm:flex flex-col items-end justify-between gap-2 flex-shrink-0 pl-3 border-l border-gray-50 min-w-[72px]">
+                            <div class="flex flex-col items-end gap-1.5">
+                                <div class="flex items-center gap-1 text-gray-400 text-xs group-hover:text-purple-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span class="font-semibold tabular-nums">{{ p.views }}</span>
+                                </div>
+                                <div class="flex items-center gap-1 text-gray-400 text-xs group-hover:text-blue-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                    <span class="font-semibold tabular-nums">{{ p.comment_count }}</span>
+                                </div>
+                                <div class="flex items-center gap-1 text-gray-400 text-xs group-hover:text-rose-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    <span class="font-semibold tabular-nums">{{ p.like_count }}</span>
+                                </div>
+                            </div>
+                            <div class="text-[10px] text-purple-500 font-semibold opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-2 transition-all duration-300 whitespace-nowrap">
+                                阅读全文 →
+                            </div>
+                        </div>
+                    </div>
+
+                    {# 移动端底部数据条 #}
+                    <div class="sm:hidden mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>{{ p.views }}</span>
+                            <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01"/></svg>{{ p.comment_count }}</span>
+                            <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>{{ p.like_count }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+
+                {# 查看更多按钮 #}
+                <div class="text-center pt-2">
+                    <a href="#" onclick="flashToast('更多帖子请点击上方板块入口查看','info');return false;"
+                       class="inline-flex items-center gap-1.5 px-6 py-2.5 bg-gray-50 text-gray-600 rounded-xl text-sm font-medium hover:bg-purple-50 hover:text-purple-700 hover:-translate-y-0.5 transition-all duration-200 border border-gray-100">
+                        查看更多讨论
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </a>
+                </div>
+            {% else %}
+                <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+                    <svg class="w-14 h-14 mx-auto text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                    <p class="mt-4 text-gray-500 text-sm">{{ '没有找到匹配的帖子，换个关键词试试~' if keyword else '还没有人发帖，快来抢沙发吧 🛋️' }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {# 右侧栏（1/3 宽度）：板块卡片 + 发帖小贴士 #}
+        <div class="space-y-4">
+            <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="absolute left-4 bottom-4 w-20 h-20 bg-pink-400/20 rounded-full blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-2xl">💡</span>
+                        <div class="font-bold">发帖小贴士</div>
+                    </div>
+                    <ul class="text-xs text-purple-100 space-y-1.5 leading-relaxed">
+                        <li>• 标题清晰，板块选对，曝光率更高</li>
+                        <li>• 发帖 <b class="text-white">+5 积分</b>，评论 <b class="text-white">+2 积分</b></li>
+                        <li>• 内容详实、配图精美优先上热门</li>
+                        <li>• 友善讨论，共建文明校园社区</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span class="text-sm font-bold text-gray-800">板块导航</span>
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    {% for cat in categories %}
+                    <a href="{{ url_for('forum.category', cat_id=cat.id) }}"
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:-translate-x-0.5 transition-all duration-200 group">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center text-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                            {{ cat.icon or '💬' }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-semibold text-gray-800 group-hover:text-purple-700 truncate">{{ cat.name }}</div>
+                            <div class="text-[10px] text-gray-400 line-clamp-1">{{ cat.description or '精彩讨论尽在此处' }}</div>
+                        </div>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium flex-shrink-0">{{ cat.posts.count() }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-lg">🏆</span>
+                    <span class="text-sm font-bold text-gray-800">活跃度排行</span>
+                </div>
+                {% if hot_categories %}
+                <div class="space-y-2">
+                    {% for cat, cnt in hot_categories %}
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-medium text-gray-700">{{ cat.name }}</span>
+                            <span class="text-[10px] text-gray-400">{{ cnt }} 帖</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                            {% set max_cnt = hot_categories[0][1] or 1 %}
+                            <div class="h-full rounded-full bg-gradient-to-r
+                                {% if loop.index==1 %}from-amber-400 to-orange-500
+                                {% elif loop.index==2 %}from-gray-300 to-gray-500
+                                {% else %}from-orange-300 to-amber-500{% endif %}"
+                                 style="width: {{ (cnt / max_cnt * 100)|round(1) }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

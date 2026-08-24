@@ -10,9 +10,27 @@ materials_bp = Blueprint('materials', __name__, url_prefix='/materials')
 
 @materials_bp.route('/')
 def list():
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('q', '').strip()
     category = request.args.get('category', '')
+
+    # ===== A方案：顶部统计小卡数据 =====
+    total_materials = Material.query.count()
+    total_downloads = db.session.query(
+        db.func.coalesce(func.sum(Material.downloads), 0)
+    ).scalar()
+    # 本周新增
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    week_new = Material.query.filter(Material.created_at >= week_ago).count()
+    # 评分Top3（取有评分的，按平均分+评论数排序）
+    all_materials = Material.query.all()
+    rated = [(m, m.avg_rating, m.review_count) for m in all_materials if m.avg_rating > 0]
+    rated.sort(key=lambda x: (x[1], x[2]), reverse=True)
+    top_rated = rated[:3]
+
     query = Material.query
     if keyword:
         query = query.filter(Material.title.contains(keyword))
@@ -22,7 +40,11 @@ def list():
         page=page, per_page=12, error_out=False)
     return render_template('materials_list.html', materials=pagination.items,
                            pagination=pagination, keyword=keyword,
-                           category=category)
+                           category=category,
+                           total_materials=total_materials,
+                           total_downloads=total_downloads,
+                           week_new=week_new,
+                           top_rated=top_rated)
 
 
 @materials_bp.route('/<int:id>')

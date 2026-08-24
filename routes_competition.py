@@ -32,6 +32,8 @@ def ensure_group(comp):
 
 @competition_bp.route('/')
 def list():
+    today = datetime.utcnow().date()
+
     page = request.args.get('page', 1, type=int)
     comp_type = request.args.get('type', '')
     query = Competition.query
@@ -39,8 +41,39 @@ def list():
         query = query.filter_by(comp_type=comp_type)
     pagination = query.order_by(Competition.created_at.desc()).paginate(
         page=page, per_page=12, error_out=False)
+
+    # ===== A方案：顶部3个状态数字卡 =====
+    all_comps = query.all()  # 展示当前筛选条件下的分组 & 计数
+    open_count = 0
+    full_count = 0
+    closed_count = 0
+
+    # ===== B方案：三列看板分组（招募中 / 已满员 / 已截止） =====
+    col_opening = []
+    col_full = []
+    col_closed = []
+    for c in all_comps:
+        is_closed_status = (c.status == 'closed')
+        is_over_deadline = (c.deadline and c.deadline < today)
+        is_full = (c.team_size and c.team_size > 0 and c.approved_count >= c.team_size)
+
+        if is_closed_status or is_over_deadline:
+            closed_count += 1
+            col_closed.append(c)
+        elif is_full:
+            full_count += 1
+            col_full.append(c)
+        else:
+            open_count += 1
+            col_opening.append(c)
+
     return render_template('competition_list.html', competitions=pagination.items,
-                           pagination=pagination, comp_type=comp_type)
+                           pagination=pagination, comp_type=comp_type,
+                           open_count=open_count, full_count=full_count,
+                           closed_count=closed_count,
+                           col_opening=col_opening, col_full=col_full,
+                           col_closed=col_closed,
+                           today=today)
 
 
 @competition_bp.route('/<int:id>')

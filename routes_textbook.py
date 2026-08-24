@@ -15,9 +15,24 @@ CATEGORIES = Textbook.CATEGORIES
 
 @textbook_bp.route('/')
 def list():
+    from datetime import datetime, timedelta
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('q', '').strip()
     cat = request.args.get('cat', '').strip()
+
+    # ===== A方案：顶部统计小卡数据 =====
+    total_count = Textbook.query.count()
+    available_count = Textbook.query.filter_by(trade_status='available').count()
+    sold_count = Textbook.query.filter_by(trade_status='sold').count()
+    today_start = datetime.utcnow().date()
+    today_new = Textbook.query.filter(
+        db.func.date(Textbook.created_at) == today_start
+    ).count()
+    # 分类占比（标签云）
+    cat_counts = dict(db.session.query(
+        Textbook.category, db.func.count(Textbook.id)
+    ).group_by(Textbook.category).all())
+
     query = Textbook.query
     if keyword:
         query = query.filter(
@@ -29,7 +44,12 @@ def list():
         page=page, per_page=12, error_out=False)
     return render_template('textbook_list.html', textbooks=pagination.items,
                            pagination=pagination, keyword=keyword,
-                           categories=CATEGORIES, current_cat=cat)
+                           categories=CATEGORIES, current_cat=cat,
+                           total_count=total_count,
+                           available_count=available_count,
+                           sold_count=sold_count,
+                           today_new=today_new,
+                           cat_counts=cat_counts)
 
 
 @textbook_bp.route('/<int:id>')

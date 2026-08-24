@@ -10,7 +10,6 @@
     <div class="absolute inset-0 pointer-events-none bridge-scene" aria-hidden="true">
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <!-- 桥体发光渐变（降亮） -->
                 <linearGradient id="bridgeGlow" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.25"/>
                     <stop offset="50%" stop-color="#93c5fd" stop-opacity="0.4"/>
@@ -42,82 +41,39 @@
                 </filter>
             </defs>
 
-            <!-- ── 远景：淡色背景拱（装饰层） ── -->
             <g opacity="0.03">
                 <path d="M-50 520 Q300 180 720 520 Q1140 180 1490 520" fill="none" stroke="white" stroke-width="12"/>
                 <path d="M-50 540 Q300 220 720 540 Q1140 220 1490 540" fill="none" stroke="white" stroke-width="8"/>
             </g>
-
-            <!-- ── 主桥拱（三道拱门） ── -->
             <g filter="url(#glowFilter)">
-                <!-- 左拱 -->
                 <path d="M120 480 Q360 80 600 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="3" opacity="0.35"/>
-                <!-- 中拱（最宽最高） -->
                 <path d="M480 480 Q720 -20 960 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="4" opacity="0.4"/>
-                <!-- 右拱 -->
                 <path d="M840 480 Q1080 80 1320 480" fill="none" stroke="url(#bridgeGlow)" stroke-width="3" opacity="0.35"/>
             </g>
-
-            <!-- ── 拱内填充（半透明桥体） ── -->
             <g opacity="0.06">
                 <path d="M120 480 Q360 80 600 480 L600 500 Q360 140 120 500 Z" fill="url(#bridgeBody)"/>
                 <path d="M480 480 Q720 -20 960 480 L960 500 Q720 60 480 500 Z" fill="url(#bridgeBody)"/>
                 <path d="M840 480 Q1080 80 1320 480 L1320 500 Q1080 140 840 500 Z" fill="url(#bridgeBody)"/>
             </g>
-
-            <!-- ── 桥面（水平横线） ── -->
             <line x1="80" y1="440" x2="1360" y2="440" stroke="white" stroke-width="2" opacity="0.2" filter="url(#glowFilter)"/>
             <line x1="80" y1="446" x2="1360" y2="446" stroke="white" stroke-width="1" opacity="0.12"/>
-
-            <!-- ── 悬索/拉索（从桥面到拱顶） ── -->
             <g opacity="0.08" stroke="url(#cableGrad)" stroke-width="0.6">
-                <!-- 左拱拉索 -->
-                <line x1="200" y1="440" x2="360" y2="140"/>
-                <line x1="280" y1="440" x2="360" y2="140"/>
-                <line x1="360" y1="440" x2="360" y2="140"/>
-                <line x1="440" y1="440" x2="360" y2="140"/>
-                <line x1="520" y1="440" x2="360" y2="140"/>
-                <!-- 中拱拉索 -->
-                <line x1="560" y1="440" x2="720" y2="30"/>
-                <line x1="640" y1="440" x2="720" y2="30"/>
-                <line x1="720" y1="440" x2="720" y2="30"/>
-                <line x1="800" y1="440" x2="720" y2="30"/>
-                <line x1="880" y1="440" x2="720" y2="30"/>
-                <!-- 右拱拉索 -->
-                <line x1="920" y1="440" x2="1080" y2="140"/>
-                <line x1="1000" y1="440" x2="1080" y2="140"/>
-                <line x1="1080" y1="440" x2="1080" y2="140"/>
-                <line x1="1160" y1="440" x2="1080" y2="140"/>
-                <line x1="1240" y1="440" x2="1080" y2="140"/>
+                <line x1="200" y1="440" x2="360" y2="140"/><line x1="280" y1="440" x2="360" y2="140"/><line x1="360" y1="440" x2="360" y2="140"/><line x1="440" y1="440" x2="360" y2="140"/><line x1="520" y1="440" x2="360" y2="140"/>
+                <line x1="560" y1="440" x2="720" y2="30"/><line x1="640" y1="440" x2="720" y2="30"/><line x1="720" y1="440" x2="720" y2="30"/><line x1="800" y1="440" x2="720" y2="30"/><line x1="880" y1="440" x2="720" y2="30"/>
+                <line x1="920" y1="440" x2="1080" y2="140"/><line x1="1000" y1="440" x2="1080" y2="140"/><line x1="1080" y1="440" x2="1080" y2="140"/><line x1="1160" y1="440" x2="1080" y2="140"/><line x1="1240" y1="440" x2="1080" y2="140"/>
             </g>
-
-            <!-- ── 桥墩/支柱 ── -->
             <g opacity="0.1">
                 <rect x="340" y="420" width="40" height="80" rx="6" fill="white"/>
                 <rect x="700" y="420" width="40" height="80" rx="6" fill="white"/>
                 <rect x="1060" y="420" width="40" height="80" rx="6" fill="white"/>
             </g>
-
-            <!-- ── 桥面节点光点 ── -->
             <g filter="url(#glowFilter)">
-                <circle cx="120" cy="443" r="2.5" fill="white" opacity="0.3">
-                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="360" cy="443" r="3" fill="white" opacity="0.35">
-                    <animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="720" cy="443" r="3.5" fill="white" opacity="0.4">
-                    <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="1080" cy="443" r="3" fill="white" opacity="0.35">
-                    <animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="1320" cy="443" r="2.5" fill="white" opacity="0.3">
-                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/>
-                </circle>
+                <circle cx="120" cy="443" r="2.5" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/></circle>
+                <circle cx="360" cy="443" r="3" fill="white" opacity="0.35"><animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/></circle>
+                <circle cx="720" cy="443" r="3.5" fill="white" opacity="0.4"><animate attributeName="opacity" values="0.4;0.6;0.4" dur="2s" repeatCount="indefinite"/></circle>
+                <circle cx="1080" cy="443" r="3" fill="white" opacity="0.35"><animate attributeName="opacity" values="0.35;0.55;0.35" dur="2.2s" repeatCount="indefinite"/></circle>
+                <circle cx="1320" cy="443" r="2.5" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite"/></circle>
             </g>
-
-            <!-- ── 水面（底部波纹） ── -->
             <g opacity="0.08">
                 <path d="M0 520 Q120 490 240 520 Q360 550 480 520 Q600 490 720 520 Q840 550 960 520 Q1080 490 1200 520 Q1320 550 1440 520 L1440 600 L0 600 Z" fill="url(#waterGrad)">
                     <animate attributeName="d" values="
@@ -134,36 +90,16 @@
                         dur="4.5s" repeatCount="indefinite"/>
                 </path>
             </g>
-
-            <!-- ── 水面倒影光点 ── -->
             <g opacity="0.06" filter="url(#softGlow)">
-                <ellipse cx="360" cy="530" rx="20" ry="3" fill="white">
-                    <animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.25;0.4;0.25" dur="3s" repeatCount="indefinite"/>
-                </ellipse>
-                <ellipse cx="720" cy="535" rx="30" ry="4" fill="white">
-                    <animate attributeName="rx" values="30;45;30" dur="3.5s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.3;0.5;0.3" dur="3.5s" repeatCount="indefinite"/>
-                </ellipse>
-                <ellipse cx="1080" cy="530" rx="20" ry="3" fill="white">
-                    <animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/>
-                </ellipse>
+                <ellipse cx="360" cy="530" rx="20" ry="3" fill="white"><animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.25;0.4;0.25" dur="3s" repeatCount="indefinite"/></ellipse>
+                <ellipse cx="720" cy="535" rx="30" ry="4" fill="white"><animate attributeName="rx" values="30;45;30" dur="3.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.3;0.5;0.3" dur="3.5s" repeatCount="indefinite"/></ellipse>
+                <ellipse cx="1080" cy="530" rx="20" ry="3" fill="white"><animate attributeName="rx" values="20;30;20" dur="3s" repeatCount="indefinite"/></ellipse>
             </g>
-
-            <!-- ── 飞鸟剪影 ── -->
             <g opacity="0.06" fill="none" stroke="white" stroke-width="1">
-                <path d="M200 200 Q210 190 220 200 Q230 190 240 200">
-                    <animateTransform attributeName="transform" type="translate" values="0,0;-30,-8;-60,0" dur="7s" repeatCount="indefinite"/>
-                </path>
-                <path d="M620 150 Q628 142 636 150 Q644 142 652 150">
-                    <animateTransform attributeName="transform" type="translate" values="0,0;-20,-6;-40,0" dur="6s" repeatCount="indefinite"/>
-                </path>
-                <path d="M1050 170 Q1058 162 1066 170 Q1074 162 1082 170">
-                    <animateTransform attributeName="transform" type="translate" values="0,0;-25,-7;-50,0" dur="8s" repeatCount="indefinite"/>
-                </path>
+                <path d="M200 200 Q210 190 220 200 Q230 190 240 200"><animateTransform attributeName="transform" type="translate" values="0,0;-30,-8;-60,0" dur="7s" repeatCount="indefinite"/></path>
+                <path d="M620 150 Q628 142 636 150 Q644 142 652 150"><animateTransform attributeName="transform" type="translate" values="0,0;-20,-6;-40,0" dur="6s" repeatCount="indefinite"/></path>
+                <path d="M1050 170 Q1058 162 1066 170 Q1074 162 1082 170"><animateTransform attributeName="transform" type="translate" values="0,0;-25,-7;-50,0" dur="8s" repeatCount="indefinite"/></path>
             </g>
-
-            <!-- ── 远景校园建筑剪影 ── -->
             <g opacity="0.04" fill="white">
                 <rect x="60" y="440" width="20" height="60" rx="2"/>
                 <rect x="85" y="430" width="16" height="70" rx="2"/>
@@ -175,122 +111,65 @@
         </svg>
     </div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- 动态粒子系统（CSS 动画）               -->
-    <!-- ═══════════════════════════════════════════ -->
+    <!-- 动态粒子系统 -->
     <div class="absolute inset-0 pointer-events-none bridge-particles" aria-hidden="true">
-        <!-- Particle 1 -->
         <div class="bridge-particle" style="left:8%;top:70%;--size:3px;--drift:18px;--speed:7s;--delay:0s;--color:rgba(147,197,253,0.8)"></div>
-        <!-- Particle 2 -->
         <div class="bridge-particle" style="left:15%;top:80%;--size:2px;--drift:-12px;--speed:9s;--delay:1.2s;--color:rgba(167,139,250,0.7)"></div>
-        <!-- Particle 3 -->
         <div class="bridge-particle" style="left:22%;top:75%;--size:4px;--drift:20px;--speed:6s;--delay:2.5s;--color:rgba(255,255,255,0.7)"></div>
-        <!-- Particle 4 -->
         <div class="bridge-particle" style="left:30%;top:85%;--size:2.5px;--drift:-15px;--speed:8s;--delay:0.8s;--color:rgba(103,232,249,0.8)"></div>
-        <!-- Particle 5 -->
         <div class="bridge-particle" style="left:38%;top:72%;--size:3px;--drift:22px;--speed:7.5s;--delay:3s;--color:rgba(196,181,253,0.7)"></div>
-        <!-- Particle 6 -->
         <div class="bridge-particle" style="left:45%;top:78%;--size:5px;--drift:-8px;--speed:5.5s;--delay:1.5s;--color:rgba(255,255,255,0.6)"></div>
-        <!-- Particle 7 -->
         <div class="bridge-particle" style="left:52%;top:82%;--size:2px;--drift:25px;--speed:10s;--delay:0.3s;--color:rgba(147,197,253,0.9)"></div>
-        <!-- Particle 8 -->
         <div class="bridge-particle" style="left:58%;top:70%;--size:3.5px;--drift:-18px;--speed:6.8s;--delay:2s;--color:rgba(167,139,250,0.6)"></div>
-        <!-- Particle 9 -->
         <div class="bridge-particle" style="left:65%;top:76%;--size:2px;--drift:15px;--speed:8.5s;--delay:0.6s;--color:rgba(103,232,249,0.7)"></div>
-        <!-- Particle 10 -->
         <div class="bridge-particle" style="left:72%;top:84%;--size:4px;--drift:-22px;--speed:7.2s;--delay:3.5s;--color:rgba(255,255,255,0.7)"></div>
-        <!-- Particle 11 -->
         <div class="bridge-particle" style="left:78%;top:73%;--size:2.5px;--drift:12px;--speed:9.5s;--delay:1.8s;--color:rgba(196,181,253,0.8)"></div>
-        <!-- Particle 12 -->
         <div class="bridge-particle" style="left:85%;top:80%;--size:3px;--drift:-20px;--speed:6.3s;--delay:2.8s;--color:rgba(147,197,253,0.7)"></div>
-        <!-- Particle 13 -->
         <div class="bridge-particle" style="left:10%;top:65%;--size:2px;--drift:8px;--speed:11s;--delay:4s;--color:rgba(255,255,255,0.5)"></div>
-        <!-- Particle 14 -->
         <div class="bridge-particle" style="left:50%;top:68%;--size:1.5px;--drift:-10px;--speed:12s;--delay:2.2s;--color:rgba(103,232,249,0.6)"></div>
-        <!-- Particle 15 -->
         <div class="bridge-particle" style="left:90%;top:75%;--size:3px;--drift:16px;--speed:8.2s;--delay:1s;--color:rgba(167,139,250,0.8)"></div>
-        <!-- Particle 16 -->
         <div class="bridge-particle" style="left:35%;top:88%;--size:2px;--drift:30px;--speed:7.8s;--delay:0.4s;--color:rgba(255,255,255,0.6)"></div>
-        <!-- Particle 17 -->
         <div class="bridge-particle" style="left:68%;top:66%;--size:4.5px;--drift:-14px;--speed:5.8s;--delay:3.2s;--color:rgba(147,197,253,0.9)"></div>
-        <!-- Particle 18 -->
         <div class="bridge-particle" style="left:25%;top:90%;--size:1.8px;--drift:19px;--speed:10.5s;--delay:1.6s;--color:rgba(196,181,253,0.5)"></div>
-        <!-- Particle 19 -->
         <div class="bridge-particle" style="left:95%;top:69%;--size:2.2px;--drift:-25px;--speed:9.2s;--delay:0.9s;--color:rgba(103,232,249,0.7)"></div>
-        <!-- Particle 20 -->
         <div class="bridge-particle" style="left:42%;top:62%;--size:3px;--drift:10px;--speed:6.5s;--delay:4.2s;--color:rgba(255,255,255,0.8)"></div>
     </div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- 光晕装饰（降亮）                         -->
-    <!-- ═══════════════════════════════════════════ -->
+    <!-- 光晕装饰 -->
     <div class="absolute top-16 -left-20 w-80 h-80 bg-blue-300/5 rounded-full blur-3xl animate-pulse-soft"></div>
     <div class="absolute bottom-0 -right-20 w-96 h-96 bg-cyan-300/4 rounded-full blur-3xl animate-float"></div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- 左右动态功能图标                         -->
-    <!-- ═══════════════════════════════════════════ -->
+    <!-- 左右动态功能图标 -->
     <div class="absolute inset-0 pointer-events-none hero-icons" aria-hidden="true">
-        <!-- 左上方：学习资料（书本） -->
         <div class="hero-icon hero-icon--book" style="left:6%;top:15%;--drift-x:12px;--drift-y:-8px;--speed:5s;--delay:0s">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
         </div>
-        <!-- 左上方：论坛（聊天气泡） -->
         <div class="hero-icon hero-icon--chat" style="left:3%;top:35%;--drift-x:-8px;--drift-y:10px;--speed:6s;--delay:1.2s">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
-            </svg>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
         </div>
-        <!-- 左上方：搜索（放大镜） -->
         <div class="hero-icon hero-icon--search" style="left:10%;top:50%;--drift-x:6px;--drift-y:-14px;--speed:7s;--delay:2.5s">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
-
-        <!-- 右上方：竞赛组队（用户群） -->
         <div class="hero-icon hero-icon--team" style="right:6%;top:12%;--drift-x:-10px;--drift-y:-6px;--speed:5.5s;--delay:0.5s">
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
-        <!-- 右上方：二手闲置（立方体/包裹） -->
         <div class="hero-icon hero-icon--cube" style="right:3%;top:32%;--drift-x:14px;--drift-y:8px;--speed:6.5s;--delay:1.8s">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-            </svg>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         </div>
-        <!-- 右上方：连接/网络（节点连线） -->
         <div class="hero-icon hero-icon--network" style="right:10%;top:48%;--drift-x:-6px;--drift-y:-10px;--speed:7.5s;--delay:3s">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
-                <line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="19" x2="19" y2="19"/>
-            </svg>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="19" x2="19" y2="19"/></svg>
         </div>
-
-        <!-- 左中：资料上传（上传箭头） -->
         <div class="hero-icon hero-icon--upload" style="left:2%;top:68%;--drift-x:8px;--drift-y:-5px;--speed:8s;--delay:3.5s">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
         </div>
-        <!-- 右中：点赞（心形） -->
         <div class="hero-icon hero-icon--heart" style="right:2%;top:65%;--drift-x:-12px;--drift-y:6px;--speed:5.8s;--delay:1s">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- Hero 文字内容                             -->
-    <!-- ═══════════════════════════════════════════ -->
-
+    <!-- Hero 文字内容 -->
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div class="text-center">
-            <!-- Hero 标题入场 -->
             <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-xs font-medium text-blue-100 mb-3 border border-white/10" data-animate="fade-up">
                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft"></span>
                 校园资源交换与交流平台
@@ -305,7 +184,7 @@
             <p class="mt-3 max-w-2xl mx-auto text-base md:text-lg text-blue-100 leading-relaxed"
                data-animate="fade-up" data-animate-delay="150" data-animate-duration="700">
                 校桥 CampusBridge — 面向全校学生的资源交换与交流平台。<br class="hidden sm:block">
-                学习资料、校园论坛、竞赛组队、二手闲置，一站搞定。
+                学习资料、校园论坛、竞赛组队、二手闲置、发现好友、站内聊天，一站搞定。
             </p>
             <div class="mt-6 flex flex-wrap justify-center gap-3"
                  data-animate="fade-up" data-animate-delay="300" data-animate-duration="600">
@@ -326,39 +205,44 @@
                 {% endif %}
             </div>
 
-            <!-- 🔑 快捷入口图标栏（已登录用户可见） -->
             {% if current_user.is_authenticated %}
             <div class="mt-5 flex flex-wrap justify-center gap-3" data-animate="fade-up" data-animate-delay="450">
                 <span class="text-xs text-blue-200/70 w-full mb-1">快捷入口</span>
                 <a href="{{ url_for('materials.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
                     <span class="w-7 h-7 bg-blue-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
-                    </span>
-                    学习资料
+                    </span>学习资料
                 </a>
                 <a href="{{ url_for('forum.index') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
                     <span class="w-7 h-7 bg-purple-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                    </span>
-                    校园论坛
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                    </span>校园论坛
                 </a>
                 <a href="{{ url_for('competition.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
                     <span class="w-7 h-7 bg-orange-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
-                    </span>
-                    竞赛组队
+                    </span>竞赛组队
                 </a>
                 <a href="{{ url_for('textbook.list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
                     <span class="w-7 h-7 bg-green-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    </span>
-                    二手闲置
+                    </span>二手闲置
+                </a>
+                <a href="{{ url_for('social.discover') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-pink-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
+                    </span>发现好友
+                </a>
+                <a href="{{ url_for('chat.friend_list') }}" class="quick-entry-btn group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg text-sm text-white border border-white/15 hover:border-white/30 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="w-7 h-7 bg-sky-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    </span>站内聊天
                 </a>
             </div>
             {% endif %}
         </div>
     </div>
-    <!-- 波浪分隔（融合底部背景） -->
+    <!-- 波浪分隔 -->
     <div class="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path d="M0 30C240 60 480 0 720 30C960 60 1200 0 1440 30V60H0V30Z" fill="#f8fafc" opacity="0.95"/>
@@ -366,10 +250,40 @@
     </div>
 </section>
 
-<!-- 统计数字（透明背景，融入主题） -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- A 方案①：平台数据大盘（6 项）                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
 <section class="relative -mt-1 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-5" data-animate-stagger="80">
+        <div class="text-center mb-10" data-animate="fade-up">
+            <span class="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-semibold tracking-wide mb-2">PLATFORM OVERVIEW</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">校桥 · 平台数据大盘</h2>
+            <p class="mt-2 text-gray-500 text-sm max-w-xl mx-auto">实时统计 · 见证每一次知识分享与校园互助</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5" data-animate-stagger="70">
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent" data-count="{{ user_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">注册用户</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-rose-200 group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 relative">
+                        <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse border-2 border-white"></span>
+                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-2xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent" data-count="{{ today_active_count or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">今日活跃</div>
+                    </div>
+                </div>
+            </div>
             <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-200 group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -384,7 +298,7 @@
             <div class="stagger-item bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
                     </div>
                     <div class="text-left">
                         <div class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-400 bg-clip-text text-transparent" data-count="{{ post_count or 0 }}" data-count-duration="1800">0</div>
@@ -398,8 +312,8 @@
                         <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>
                     </div>
                     <div class="text-left">
-                        <div class="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent" data-count="{{ competition_count or 0 }}" data-count-duration="1800">0</div>
-                        <div class="text-xs text-gray-400 font-medium">个竞赛招募</div>
+                        <div class="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent" data-count="{{ competition_open or 0 }}" data-count-duration="1800">0</div>
+                        <div class="text-xs text-gray-400 font-medium">招募中 / {{ competition_full or 0 }} 已结</div>
                     </div>
                 </div>
             </div>
@@ -418,16 +332,17 @@
     </div>
 </section>
 
-<!-- 四大功能卡片 -->
-<section class="py-16">
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- A 方案②：6 大核心功能卡片                               -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-14">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12" data-animate="fade-up">
             <span class="inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold tracking-wide mb-3">CORE FEATURES</span>
-            <h2 class="text-3xl font-bold text-gray-900">核心功能</h2>
-            <p class="mt-3 text-gray-500 max-w-2xl mx-auto">四大核心模块，覆盖校园资源共享的每一个场景</p>
+            <h2 class="text-3xl font-bold text-gray-900">六大核心功能</h2>
+            <p class="mt-3 text-gray-500 max-w-2xl mx-auto">覆盖校园生活、学习、社交全场景 — 学习资料、校园论坛、竞赛组队、二手闲置、发现好友、站内聊天</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" data-animate-stagger="120">
-            <!-- 学习资料 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-animate-stagger="120">
             <a href="{{ url_for('materials.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-blue-200" data-tilt data-tilt-max="5">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
@@ -436,28 +351,26 @@
                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-500">课件·试题·笔记</span>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">学习资料</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">上传课件笔记，分类浏览检索，在线预览与评价，让优质资源触手可及。</p>
+                <p class="text-sm text-gray-500 leading-relaxed">上传课件笔记，分类浏览检索，在线预览与星级评价，让优质资源触手可及。</p>
                 <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
                     <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>{{ material_count or 0 }} 份资料</span>
                     <span class="font-medium text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all">浏览资料 <span>→</span></span>
                 </div>
             </a>
-            <!-- 校园论坛 -->
             <a href="{{ url_for('forum.index') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-purple-200" data-tilt data-tilt-max="5">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
                     </div>
                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-500">五大分区</span>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">校园论坛</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">分区讨论、发帖回复、点赞收藏，在交流中碰撞思维火花。</p>
+                <p class="text-sm text-gray-500 leading-relaxed">分区讨论、发帖回复、点赞收藏、AI 智能摘要，在交流中碰撞思维火花。</p>
                 <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
                     <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>{{ post_count or 0 }} 篇帖子</span>
                     <span class="font-medium text-purple-600 flex items-center gap-1 group-hover:gap-2 transition-all">进入论坛 <span>→</span></span>
                 </div>
             </a>
-            <!-- 竞赛组队 -->
             <a href="{{ url_for('competition.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-orange-200" data-tilt data-tilt-max="5">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
@@ -466,13 +379,12 @@
                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-500">招募·申请·组队</span>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">竞赛组队</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">发布招募、申请加入、队伍管理，快速找到最佳搭档。</p>
+                <p class="text-sm text-gray-500 leading-relaxed">发布招募、申请加入、进度看板，快速找到志同道合的最佳搭档。</p>
                 <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
-                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857"/></svg>{{ competition_count or 0 }} 个招募</span>
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857"/></svg>{{ competition_open or 0 }} 个招募</span>
                     <span class="font-medium text-orange-600 flex items-center gap-1 group-hover:gap-2 transition-all">查看招募 <span>→</span></span>
                 </div>
             </a>
-            <!-- 二手闲置 -->
             <a href="{{ url_for('textbook.list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-green-200" data-tilt data-tilt-max="5">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
@@ -481,18 +393,214 @@
                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-500">书籍·数码·生活</span>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">二手闲置</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">发布闲置、搜索所需、站内沟通，盘活校园闲置物品。</p>
+                <p class="text-sm text-gray-500 leading-relaxed">发布闲置、橱窗展示、快捷收藏私信，低成本盘活校园闲置物品。</p>
                 <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
                     <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>{{ textbook_count or 0 }} 件物品</span>
                     <span class="font-medium text-green-600 flex items-center gap-1 group-hover:gap-2 transition-all">逛逛市场 <span>→</span></span>
+                </div>
+            </a>
+            <a href="{{ url_for('social.discover') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-pink-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-pink-100 to-rose-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-pink-50 text-pink-500">同学·好友·社交</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">发现好友</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">发现志趣相投的同校同学，查看资料、兴趣标签，一键发起好友申请。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292"/></svg>{{ user_count or 0 }} 位同学</span>
+                    <span class="font-medium text-pink-600 flex items-center gap-1 group-hover:gap-2 transition-all">去发现 <span>→</span></span>
+                </div>
+            </a>
+            <a href="{{ url_for('chat.friend_list') }}" class="stagger-item feature-card group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-sky-200" data-tilt data-tilt-max="5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-sky-100 to-cyan-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:shadow-md">
+                        <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-500">私聊·群聊·图片文件</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-sky-600 transition-colors">站内聊天</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">一对一私聊 + 兴趣群聊，支持文字、图片、文档文件即时发送与下载。</p>
+                <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between text-sm">
+                    <span class="text-gray-400 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>多种消息类型</span>
+                    <span class="font-medium text-sky-600 flex items-center gap-1 group-hover:gap-2 transition-all">打开聊天 <span>→</span></span>
                 </div>
             </a>
         </div>
     </div>
 </section>
 
-<!-- 平台特色 -->
-<section class="py-16 bg-white/30 backdrop-blur-[2px]">
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- A 方案③：最新动态双栏（热门帖子 + 新资料/闲置）+ 精选 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-14 bg-gradient-to-b from-slate-50/70 via-white to-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10" data-animate="fade-up">
+            <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-semibold tracking-wide mb-2">LATEST ACTIVITY</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">最新动态 · 正在发生</h2>
+            <p class="mt-2 text-gray-500 text-sm max-w-xl mx-auto">看看同学们正在分享什么</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" data-animate-stagger="90">
+            <!-- 左栏：热门帖子 Top5 -->
+            <div class="lg:col-span-2 stagger-item">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+                    <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-purple-50/80 to-transparent">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                            </span>
+                            热门讨论 · 最新帖子 Top 5
+                        </h3>
+                        <a href="{{ url_for('forum.index') }}" class="text-xs text-purple-600 font-medium hover:underline">查看全部 →</a>
+                    </div>
+                    {% if hot_posts %}
+                    <ul class="divide-y divide-gray-50">
+                        {% for p in hot_posts %}
+                        <li>
+                            <a href="{{ url_for('forum.post_detail', id=p.id) }}" class="block px-6 py-4 hover:bg-purple-50/30 transition-colors duration-200 group">
+                                <div class="flex items-start gap-4">
+                                    <span class="w-8 h-8 mt-0.5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+                                        {{ (p.author.username[0] if p.author else 'U')|upper }}
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-xs text-gray-400">{{ p.author.username if p.author else '匿名' }}</span>
+                                            <span class="text-xs text-gray-300">·</span>
+                                            <span class="text-xs text-gray-400">{{ p.created_at.strftime('%m-%d %H:%M') if p.created_at else '' }}</span>
+                                            {% if p.category %}
+                                            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 font-medium">{{ p.category }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <h4 class="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
+                                            <span class="mr-1.5 text-xs font-bold text-purple-400">#{{ loop.index }}</span>{{ p.title }}
+                                        </h4>
+                                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ p.content[:80] if p.content else '' }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="p-10 text-center text-sm text-gray-400">暂无帖子，<a href="{{ url_for('forum.index') }}" class="text-purple-600 hover:underline">去发布第一条 →</a></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 右栏：上下叠 新资料 + 新闲置 -->
+            <div class="flex flex-col gap-6 stagger-item" data-animate-stagger-child="90">
+                <!-- 最新上传资料 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden child-stagger">
+                    <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-blue-50/80 to-transparent">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg>
+                            </span>
+                            最新学习资料
+                        </h3>
+                        <a href="{{ url_for('materials.list') }}" class="text-xs text-blue-600 font-medium hover:underline">更多 →</a>
+                    </div>
+                    {% if new_materials %}
+                    <ul class="divide-y divide-gray-50">
+                        {% for m in new_materials %}
+                        <li>
+                            <a href="{{ url_for('materials.detail', id=m.id) }}" class="block px-5 py-3 hover:bg-blue-50/30 transition-colors duration-200 group">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-9 h-9 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
+                                        {{ ((m.file_name or m.title or 'DOC').split('.')[-1][:3] if '.' in (m.file_name or '') else 'DOC') }}
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">{{ m.title }}</div>
+                                        <div class="text-xs text-gray-400 mt-0.5">{{ m.author.username if m.author else '佚名' }} · {{ m.created_at.strftime('%m-%d') if m.created_at else '' }}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="p-8 text-center text-sm text-gray-400">暂无资料</div>
+                    {% endif %}
+                </div>
+
+                <!-- 最新二手闲置 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden child-stagger">
+                    <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-green-50/80 to-transparent">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            </span>
+                            最新二手闲置
+                        </h3>
+                        <a href="{{ url_for('textbook.list') }}" class="text-xs text-green-600 font-medium hover:underline">逛逛 →</a>
+                    </div>
+                    {% if new_textbooks %}
+                    <ul class="grid grid-cols-2 gap-3 p-4">
+                        {% for t in new_textbooks %}
+                        <li>
+                            <a href="{{ url_for('textbook.detail', id=t.id) }}" class="group block rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+                                <div class="aspect-square bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center overflow-hidden">
+                                    {% if t.cover_image %}
+                                    <img src="{{ t.cover_image }}" alt="{{ t.title }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="p-2">
+                                    <div class="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-green-600 transition-colors">{{ t.title }}</div>
+                                    <div class="mt-1 text-sm font-bold text-orange-500">¥{{ '%.0f'|format(t.price or 0) }}</div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="p-8 text-center text-sm text-gray-400">暂无闲置</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 精选竞赛招募（3 张大卡） -->
+        {% if hot_competitions %}
+        <div class="mt-12" data-animate="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-semibold mb-2">FEATURED</span>
+                    <h3 class="text-2xl font-bold text-gray-900">🔥 正在招募的竞赛组队</h3>
+                </div>
+                <a href="{{ url_for('competition.list') }}" class="hidden sm:inline-flex items-center gap-1 text-sm text-orange-600 font-medium hover:underline">查看全部招募 →</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5" data-animate-stagger="90">
+                {% for c in hot_competitions %}
+                <a href="{{ url_for('competition.detail', id=c.id) }}" class="stagger-item group rounded-2xl p-6 text-white shadow-lg relative overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
+                   style="background: linear-gradient(135deg, {% if loop.index==1 %}#f97316 0%, #ef4444 100%{% elif loop.index==2 %}#8b5cf6 0%, #6366f1 100%{% else %}#0ea5e9 0%, #14b8a6 100%{% endif %});">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-black/5 rounded-full blur-2xl"></div>
+                    <span class="relative inline-block text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm mb-3">{{ c.comp_type or '竞赛招募' }}</span>
+                    <h4 class="relative text-xl font-bold leading-snug mb-2 line-clamp-2 group-hover:translate-x-0.5 transition-transform">{{ c.title }}</h4>
+                    <p class="relative text-sm text-white/80 line-clamp-2 mb-4">{{ c.description }}</p>
+                    <div class="relative flex items-center justify-between pt-3 border-t border-white/20">
+                        <span class="text-xs flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold">{{ (c.owner.username[0] if c.owner else 'O')|upper }}</span>
+                            {{ c.owner.username if c.owner else '发起人' }}
+                        </span>
+                        <span class="text-xs bg-white text-orange-600 px-2.5 py-1 rounded-full font-bold">
+                            {{ c.approved_count or 0 }}/{{ c.team_size or '∞' }} 人
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- 平台特色（保留原有 3 卡） -->
+<section class="py-14 bg-white/30 backdrop-blur-[2px]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12" data-animate="fade-up">
             <span class="inline-block px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-semibold tracking-wide mb-3">WHY US</span>
@@ -506,7 +614,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-gray-900 mb-1.5">安全可信</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed">校内用户注册，严格内容审核机制，保障平台安全可靠，让每一次分享都安心。</p>
+                        <p class="text-sm text-gray-500 leading-relaxed">校内用户注册 + 积分等级体系，严格内容审核机制，保障平台安全可靠。</p>
                     </div>
                 </div>
             </div>
@@ -516,8 +624,8 @@
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-1.5">高效便捷</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed">一键上传资料、智能分类检索、即时沟通，让资源获取和闲置交易更加高效。</p>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1.5">AI + 高效便捷</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">AI 智能摘要、一键上传、全站聚合搜索、即时聊天，资源获取效率拉满。</p>
                     </div>
                 </div>
             </div>
@@ -540,16 +648,13 @@
 <section class="py-16 bg-gradient-to-r from-blue-500 to-cyan-500 relative overflow-hidden">
     <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
     <div class="absolute bottom-0 left-0 w-48 h-48 bg-cyan-300/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
-    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
-         data-animate="scale-in">
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-animate="scale-in">
         <h2 class="text-3xl font-bold text-white mb-4">开始你的校园资源共享之旅</h2>
         <p class="text-blue-100 mb-8 text-lg">加入校桥，与全校同学一起分享知识、交流心得。</p>
         {% if not current_user.is_authenticated %}
         <a href="{{ url_for('auth.register') }}" class="inline-flex items-center px-8 py-3.5 bg-white text-blue-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 text-lg" data-ripple>
             免费注册
-            <svg class="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
         </a>
         {% endif %}
     </div>

@@ -21,8 +21,47 @@ forum_bp = Blueprint('forum', __name__, url_prefix='/forum')
 
 @forum_bp.route('/')
 def index():
+    from datetime import datetime
+    from sqlalchemy import func
+    from models import User
+
     categories = ForumCategory.query.order_by(ForumCategory.sort_order).all()
-    return render_template('forum_index.html', categories=categories)
+
+    # ===== A方案：顶部统计小卡数据 =====
+    total_posts = Post.query.count()
+    total_comments = Comment.query.count()
+    today_start = datetime.utcnow().date()
+    today_posts = Post.query.filter(
+        db.func.date(Post.created_at) == today_start
+    ).count()
+    # 热门板块Top3（按帖子数）
+    cat_stats = db.session.query(
+        ForumCategory, func.count(Post.id)
+    ).outerjoin(Post, Post.category_id == ForumCategory.id
+    ).group_by(ForumCategory.id).order_by(func.count(Post.id).desc()).limit(3).all()
+    hot_categories = [(c, cnt) for c, cnt in cat_stats]
+
+    # ===== B方案：知乎式最新帖子信息流（跨板块聚合） =====
+    page = request.args.get('page', 1, type=int)
+    keyword = request.args.get('q', '').strip()
+    q = Post.query
+    if keyword:
+        q = q.filter(Post.title.contains(keyword))
+    latest_posts_q = q.options(
+        db.joinedload(Post.author), db.joinedload(Post.category),
+        db.joinedload(Post.images)
+    ).order_by(Post.is_pinned.desc(), Post.created_at.desc())
+    # 不取 pagination，直接取 15 条展示
+    feed_posts = latest_posts_q.limit(15).all()
+
+    return render_template('forum_index.html',
+                           categories=categories,
+                           total_posts=total_posts,
+                           total_comments=total_comments,
+                           today_posts=today_posts,
+                           hot_categories=hot_categories,
+                           feed_posts=feed_posts,
+                           keyword=keyword)
 
 
 @forum_bp.route('/category/<int:cat_id>')
