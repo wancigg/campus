@@ -87,49 +87,51 @@ def create_app():
         textbooks_count = 0
         users_count = 0
 
-        if keyword:
-            like = f'%{keyword}%'
-            # 1. 论坛帖子：标题/内容/摘要匹配
-            if category in ('all', 'posts'):
-                post_query = Post.query.filter(or_(
-                    Post.title.contains(keyword),
-                    Post.content.contains(keyword),
-                ))
-                posts_count = post_query.count()
-                posts = post_query.order_by(Post.created_at.desc()).limit(8).all()
+        def _build_kw_filter(*columns):
+            """根据关键字生成 OR LIKE 过滤，空关键字则返回 True（不过滤）"""
+            if not keyword:
+                return True
+            return or_(*[col.contains(keyword) for col in columns])
 
-            # 2. 学习资料：标题/描述/分类
-            if category in ('all', 'materials'):
-                mat_query = Material.query.filter(or_(
-                    Material.title.contains(keyword),
-                    Material.description.contains(keyword),
-                    Material.category.contains(keyword),
-                ))
-                materials_count = mat_query.count()
-                materials = mat_query.order_by(Material.created_at.desc()).limit(6).all()
+        # 1. 论坛帖子：标题/内容匹配（空关键字返回最近 8 条）
+        if category in ('all', 'posts'):
+            post_query = Post.query.filter(_build_kw_filter(
+                Post.title, Post.content,
+            ))
+            posts_count = post_query.count()
+            posts = post_query.order_by(Post.created_at.desc()).limit(8).all()
 
-            # 3. 二手市场：标题/描述/分类/品牌/出版社
-            if category in ('all', 'textbooks'):
-                tb_query = Textbook.query.filter(or_(
-                    Textbook.title.contains(keyword),
-                    Textbook.description.contains(keyword),
-                    Textbook.category.contains(keyword),
-                    Textbook.author.contains(keyword),
-                    Textbook.publisher.contains(keyword),
-                ))
-                textbooks_count = tb_query.count()
-                textbooks = tb_query.order_by(Textbook.created_at.desc()).limit(6).all()
+        # 2. 学习资料：标题/描述/分类（description 可能为 NULL，兜底成空串）
+        if category in ('all', 'materials'):
+            mat_filter = _build_kw_filter(
+                Material.title, db.func.coalesce(Material.description, ''), Material.category,
+            )
+            mat_query = Material.query.filter(mat_filter)
+            materials_count = mat_query.count()
+            materials = mat_query.order_by(Material.created_at.desc()).limit(6).all()
 
-            # 4. 校园用户：用户名/简介/学校/专业
-            if category in ('all', 'users'):
-                user_query = User.query.filter(or_(
-                    User.username.contains(keyword),
-                    User.bio.contains(keyword),
-                    User.school.contains(keyword),
-                    User.major.contains(keyword),
-                ))
-                users_count = user_query.count()
-                users = user_query.order_by(User.points.desc()).limit(6).all()
+        # 3. 二手市场：标题/描述/分类/品牌/出版社
+        if category in ('all', 'textbooks'):
+            tb_filter = _build_kw_filter(
+                Textbook.title,
+                db.func.coalesce(Textbook.description, ''),
+                db.func.coalesce(Textbook.category, ''),
+                db.func.coalesce(Textbook.author, ''),
+                db.func.coalesce(Textbook.publisher, ''),
+            )
+            tb_query = Textbook.query.filter(tb_filter)
+            textbooks_count = tb_query.count()
+            textbooks = tb_query.order_by(Textbook.created_at.desc()).limit(6).all()
+
+        # 4. 校园用户：用户名/简介（User 模型没有 school/major 字段！已修正）
+        if category in ('all', 'users'):
+            user_filter = _build_kw_filter(
+                User.username,
+                db.func.coalesce(User.bio, ''),
+            )
+            user_query = User.query.filter(user_filter)
+            users_count = user_query.count()
+            users = user_query.order_by(User.points.desc()).limit(6).all()
 
         total_count = posts_count + materials_count + textbooks_count + users_count
 
