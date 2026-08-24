@@ -48,9 +48,29 @@
 
     <!-- 输入区 -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mt-3">
-        <form id="msgForm" class="flex items-end space-x-2">
-            <textarea id="msgInput" rows="1" placeholder="输入消息..." class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-            <button type="submit" class="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium rounded-xl hover:shadow-lg transition-all text-sm disabled:opacity-50" id="sendBtn">发送</button>
+        <form id="msgForm" class="flex flex-col space-y-2">
+            <!-- 上传工具条 -->
+            <div class="flex items-center space-x-2 px-1">
+                <input type="file" id="imageInput" class="hidden" accept="image/*">
+                <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.md,image/*">
+                <button type="button" onclick="document.getElementById('imageInput').click()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-colors" title="发送图片">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>图片</span>
+                </button>
+                <button type="button" onclick="document.getElementById('fileInput').click()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors" title="发送文件">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <span>文件</span>
+                </button>
+                <div id="uploadingHint" class="hidden text-xs text-blue-500 ml-2">
+                    <svg class="w-3 h-3 inline animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <span id="uploadingText">正在上传...</span>
+                </div>
+            </div>
+
+            <div class="flex items-end space-x-2">
+                <textarea id="msgInput" rows="1" placeholder="输入消息...（可搭配图片/文件一起发送）" class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+                <button type="submit" class="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium rounded-xl hover:shadow-lg transition-all text-sm disabled:opacity-50" id="sendBtn">发送</button>
+            </div>
         </form>
     </div>
 </div>
@@ -61,21 +81,93 @@
 var partnerId = {{ partner.id }};
 var lastMsgId = 0;
 var container = document.getElementById('msgContainer');
+// 暂存待一起发送的文件信息（上传完立即发送，或与文字一起发送）
+var pendingFile = null;
+
+function formatSize(numBytes) {
+    if (!numBytes) return '';
+    if (numBytes < 1024) return numBytes + ' B';
+    if (numBytes < 1024 * 1024) return Math.floor(numBytes / 1024) + ' KB';
+    return (numBytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// 渲染单条消息主体内容（根据类型）
+function renderMsgBody(msg) {
+    var parts = [];
+    // 图片
+    if (msg.file_type === 'image' && msg.file_url) {
+        parts.push(
+            '<a href="' + msg.file_url + '" target="_blank" class="block rounded-lg overflow-hidden cursor-zoom-in hover:opacity-95 transition-opacity">' +
+                '<img src="' + msg.file_url + '" class="message-image max-w-full max-h-80 rounded-lg object-contain bg-gray-50" style="display:block;" loading="lazy">' +
+            '</a>'
+        );
+    }
+    // 文件卡片
+    if (msg.file_type === 'file' && msg.file_url) {
+        var fname = msg.file_name || '附件';
+        var fsize = formatSize(msg.file_size);
+        var ext = fname.split('.').pop().toUpperCase() || 'FILE';
+        if (ext.length > 5) ext = 'FILE';
+        parts.push(
+            '<a href="' + msg.file_url + '" target="_blank" download class="flex items-center space-x-3 p-3 rounded-lg min-w-[220px] max-w-[320px] ' +
+                (msg.is_self ? 'bg-white/15 hover:bg-white/20' : 'bg-white hover:bg-gray-50 border border-gray-100') +
+                ' transition-colors">' +
+                '<div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-bold text-xs ' +
+                    (msg.is_self ? 'bg-white/20' : 'bg-gradient-to-br from-blue-400 to-cyan-400') + '">' + ext + '</div>' +
+                '<div class="flex-1 min-w-0">' +
+                    '<div class="text-sm font-medium truncate ' + (msg.is_self ? 'text-white' : 'text-gray-800') + '">' + escapeHtml(fname) + '</div>' +
+                    '<div class="text-xs mt-0.5 ' + (msg.is_self ? 'text-blue-100' : 'text-gray-400') + '">' + fsize + ' · 点击下载</div>' +
+                '</div>' +
+                '<svg class="w-4 h-4 flex-shrink-0 ' + (msg.is_self ? 'text-white/70' : 'text-gray-300') + '" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
+            '</a>'
+        );
+    }
+    // 文字
+    if (msg.content) {
+        parts.push('<div class="whitespace-pre-wrap break-words">' + escapeHtml(msg.content) + '</div>');
+    }
+    // 气泡样式：如果只有图片，去掉内边距（给图片更大空间）
+    var hasOnlyImage = msg.file_type === 'image' && !msg.content;
+    var bubbleClass = '';
+    if (hasOnlyImage) {
+        bubbleClass = 'rounded-2xl overflow-hidden ' + (msg.is_self ? 'rounded-br-md' : 'rounded-bl-md');
+    } else if (msg.file_type === 'file' && !msg.content) {
+        bubbleClass = 'p-0 rounded-2xl ' + (msg.is_self ? 'bg-gradient-to-r from-blue-500 to-cyan-500 rounded-br-md' : 'rounded-bl-md');
+    } else {
+        bubbleClass = 'px-3 py-2 rounded-2xl text-sm leading-relaxed ' +
+            (msg.is_self
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-md'
+                : 'bg-gray-100 text-gray-800 rounded-bl-md');
+    }
+    return '<div class="mt-0.5 ' + bubbleClass + '">' + parts.join(msg.content && (msg.file_type === 'image' || msg.file_type === 'file') ? '<div class="mb-2"></div>' : '') + '</div>';
+}
 
 // 渲染单条消息
 function renderMsg(msg) {
     var div = document.createElement('div');
     div.className = 'flex ' + (msg.is_self ? 'justify-end' : 'justify-start');
     div.innerHTML =
-        '<div class="max-w-[75%]">' +
+        '<div class="max-w-[78%]">' +
         (!msg.is_self ? '<span class="text-xs text-gray-400 ml-1">' + msg.sender_name + '</span>' : '') +
-        '<div class="mt-0.5 px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ' +
-            (msg.is_self
-                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-md'
-                : 'bg-gray-100 text-gray-800 rounded-bl-md') +
-        '">' + escapeHtml(msg.content) + '</div>' +
+        renderMsgBody(msg) +
         '<div class="text-xs text-gray-400 mt-0.5 ' + (msg.is_self ? 'text-right mr-1' : 'ml-1') + '">' + msg.created_at + '</div>' +
         '</div>';
+    // 图片方向自适应（绑定 onload）
+    var imgs = div.querySelectorAll('.message-image');
+    imgs.forEach(function(img) {
+        img.addEventListener('load', function() {
+            try {
+                var ratio = img.naturalWidth / img.naturalHeight;
+                if (ratio > 1) {
+                    img.style.maxWidth = '320px';
+                    img.style.maxHeight = '240px';
+                } else {
+                    img.style.maxWidth = '220px';
+                    img.style.maxHeight = '320px';
+                }
+            } catch (e) {}
+        });
+    });
     return div;
 }
 
@@ -106,35 +198,124 @@ function loadMessages(lastId) {
     });
 }
 
-// 发送消息
-function sendMessage() {
-    var input = document.getElementById('msgInput');
-    var text = input.value.trim();
-    if (!text) return;
+// 上传文件
+function uploadFile(file) {
+    var hint = document.getElementById('uploadingHint');
+    var hintText = document.getElementById('uploadingText');
+    hint.classList.remove('hidden');
+    hintText.textContent = '正在上传 ' + file.name + '...';
     var btn = document.getElementById('sendBtn');
     btn.disabled = true;
+
+    var fd = new FormData();
+    fd.append('file', file);
+    return fetch('/chat/upload', {method: 'POST', body: fd})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.ok) {
+                alert(data.error || '上传失败');
+                return null;
+            }
+            return data;
+        })
+        .catch(function(err) {
+            alert('上传出错：' + err);
+            return null;
+        })
+        .finally(function() {
+            hint.classList.add('hidden');
+            btn.disabled = false;
+        });
+}
+
+// 上传并立即发送文件消息（可附带输入框里的文字）
+function uploadAndSend(file) {
+    uploadFile(file).then(function(data) {
+        if (!data) return;
+        var text = (document.getElementById('msgInput').value || '').trim();
+        sendMessageWithFile({
+            file_key: data.file_key,
+            file_name: data.file_name,
+            file_type: data.file_type
+        }, text);
+    });
+}
+
+// 发送消息（支持文件 + 文字）
+function sendMessageWithFile(fileInfo, text) {
+    text = (text || '').trim();
+    if (!text && !fileInfo) return;
+    var btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+
+    var payload = {content: text};
+    if (fileInfo) {
+        payload.file_key = fileInfo.file_key;
+        payload.file_name = fileInfo.file_name;
+        payload.file_type = fileInfo.file_type;
+    }
     fetch('/chat/friend/' + partnerId + '/send', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({content: text})
+        body: JSON.stringify(payload)
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.ok) {
             var el = renderMsg(data.message);
             container.insertBefore(el, document.getElementById('msgEnd'));
             scrollToBottom();
+            var input = document.getElementById('msgInput');
             input.value = '';
             input.style.height = 'auto';
             lastMsgId = Math.max(lastMsgId, data.message.id);
+        } else if (data.error) {
+            alert(data.error);
         }
     }).finally(function() {
         btn.disabled = false;
-        input.focus();
+        document.getElementById('msgInput').focus();
     });
+}
+
+// 纯文字发送（兼容老逻辑）
+function sendMessage() {
+    var input = document.getElementById('msgInput');
+    var text = input.value.trim();
+    if (!text) return;
+    sendMessageWithFile(null, text);
 }
 
 document.getElementById('msgForm').addEventListener('submit', function(e) {
     e.preventDefault();
     sendMessage();
+});
+
+// 图片选择监听
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    var f = e.target.files && e.target.files[0];
+    if (f) uploadAndSend(f);
+    e.target.value = '';
+});
+// 文件选择监听
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    var f = e.target.files && e.target.files[0];
+    if (f) uploadAndSend(f);
+    e.target.value = '';
+});
+
+// 粘贴图片发送
+document.addEventListener('paste', function(e) {
+    if (!e.clipboardData) return;
+    var items = e.clipboardData.items;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.indexOf('image') === 0) {
+            var f = items[i].getAsFile();
+            if (f) {
+                e.preventDefault();
+                uploadAndSend(f);
+                break;
+            }
+        }
+    }
 });
 
 // 初始加载

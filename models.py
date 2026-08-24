@@ -482,7 +482,10 @@ class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=True)   # 允许为空（纯图片/纯文件消息）
+    file_key = db.Column(db.String(500))          # 上传存储 key（图片/文件）
+    file_name = db.Column(db.String(255))         # 原始文件名（展示用）
+    file_type = db.Column(db.String(20), default='text')  # text | image | file
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -490,12 +493,31 @@ class ChatMessage(db.Model):
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_chat_messages')
 
     def to_dict(self, current_user_id=None):
+        import os
+        from flask import url_for, current_app
+        url, size = None, 0
+        if self.file_key:
+            try:
+                url = url_for('uploaded_file', key=self.file_key)
+            except Exception:
+                url = '/uploads/' + self.file_key
+            try:
+                fp = os.path.join(current_app.config['UPLOAD_FOLDER'], self.file_key)
+                if os.path.exists(fp):
+                    size = os.path.getsize(fp)
+            except Exception:
+                pass
         return {
             'id': self.id,
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id,
             'sender_name': self.sender.username if self.sender else None,
-            'content': self.content,
+            'content': self.content or '',
+            'file_key': self.file_key,
+            'file_name': self.file_name,
+            'file_type': self.file_type or 'text',
+            'file_url': url,
+            'file_size': size,
             'created_at': (self.created_at + CHINA_TZ).strftime('%m-%d %H:%M'),
             'is_self': self.sender_id == current_user_id,
         }
@@ -542,18 +564,40 @@ class ChatGroupMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey('chat_groups.id'), nullable=False)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=True)   # 允许为空
+    file_key = db.Column(db.String(500))          # 上传存储 key
+    file_name = db.Column(db.String(255))         # 原始文件名
+    file_type = db.Column(db.String(20), default='text')  # text | image | file
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_group_chat_messages')
 
     def to_dict(self, current_user_id=None):
+        import os
+        from flask import url_for, current_app
+        url, size = None, 0
+        if self.file_key:
+            try:
+                url = url_for('uploaded_file', key=self.file_key)
+            except Exception:
+                url = '/uploads/' + self.file_key
+            try:
+                fp = os.path.join(current_app.config['UPLOAD_FOLDER'], self.file_key)
+                if os.path.exists(fp):
+                    size = os.path.getsize(fp)
+            except Exception:
+                pass
         return {
             'id': self.id,
             'group_id': self.group_id,
             'sender_id': self.sender_id,
             'sender_name': self.sender.username if self.sender else None,
-            'content': self.content,
+            'content': self.content or '',
+            'file_key': self.file_key,
+            'file_name': self.file_name,
+            'file_type': self.file_type or 'text',
+            'file_url': url,
+            'file_size': size,
             'created_at': (self.created_at + CHINA_TZ).strftime('%m-%d %H:%M'),
             'is_self': self.sender_id == current_user_id,
         }

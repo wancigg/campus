@@ -91,10 +91,17 @@
                 论坛帖子
                 <span class="text-sm font-normal text-gray-400 ml-1">共 {{ posts_count }} 条</span>
             </h2>
-            <a href="{{ url_for('forum.index' if category != 'all' else 'search', q=keyword if category != 'all' else None, **({} if category != 'all' else {'type': 'posts', 'q': keyword})) }}"
+            {% if category != 'all' %}
+            <a href="{{ url_for('forum.index', q=keyword) }}"
                class="text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-1">
                 去论坛查看更多 →
             </a>
+            {% else %}
+            <a href="{{ url_for('search', type='posts', q=keyword) }}"
+               class="text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-1">
+                只看帖子类结果 →
+            </a>
+            {% endif %}
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {% for p in posts %}

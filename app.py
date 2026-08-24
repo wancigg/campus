@@ -197,6 +197,28 @@ def create_app():
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+        # chat_messages 表：文件上传字段
+        for _col, _type in [
+            ('file_key', "VARCHAR(500) DEFAULT NULL"),
+            ('file_name', "VARCHAR(255) DEFAULT NULL"),
+            ('file_type', "VARCHAR(20) DEFAULT 'text'"),
+        ]:
+            try:
+                db.session.execute(text(f"ALTER TABLE chat_messages ADD COLUMN {_col} {_type}"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        # chat_group_messages 表：文件上传字段
+        for _col, _type in [
+            ('file_key', "VARCHAR(500) DEFAULT NULL"),
+            ('file_name', "VARCHAR(255) DEFAULT NULL"),
+            ('file_type', "VARCHAR(20) DEFAULT 'text'"),
+        ]:
+            try:
+                db.session.execute(text(f"ALTER TABLE chat_group_messages ADD COLUMN {_col} {_type}"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
     return app
 
@@ -310,6 +332,18 @@ if __name__ == '__main__':
             db.session.commit()
         except Exception:
             db.session.rollback()
+        # 迁移：聊天消息表添加文件上传字段
+        for _tbl in ('chat_messages', 'chat_group_messages'):
+            for _col, _type in [
+                ('file_key', "VARCHAR(500) DEFAULT NULL"),
+                ('file_name', "VARCHAR(255) DEFAULT NULL"),
+                ('file_type', "VARCHAR(20) DEFAULT 'text'"),
+            ]:
+                try:
+                    db.session.execute(text(f"ALTER TABLE {_tbl} ADD COLUMN {_col} {_type}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
         # 初始化默认数据
         from models import User, ForumCategory
         if not User.query.filter_by(username='admin').first():

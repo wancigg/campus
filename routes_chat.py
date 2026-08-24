@@ -1,13 +1,86 @@
 """好友私聊 + 群聊路由"""
+import os
 from datetime import timedelta
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from extensions import db
 from models import User, ChatMessage, ChatGroup, ChatGroupMember, ChatGroupMessage, Notification
+from storage import save_file
 from sqlalchemy import or_, and_
 
 chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
+
+ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
+ALLOWED_FILE_EXT = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar', 'md'}
+
+
+def _allowed_file(filename):
+    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    return ext in ALLOWED_IMAGE_EXT or ext in ALLOWED_FILE_EXT
+
+
+def _get_file_type(filename):
+    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    if ext in ALLOWED_IMAGE_EXT:
+        return 'image'
+    return 'file'
+
+
+def _format_size(num_bytes):
+    """格式化文件大小显示"""
+    if num_bytes < 1024:
+        return f'{num_bytes} B'
+    elif num_bytes < 1024 * 1024:
+        return f'{num_bytes // 1024} KB'
+    else:
+        return f'{(num_bytes / (1024 * 1024)):.1f} MB'
+
+
+@chat_bp.route('/upload', methods=['POST'])
+@login_required
+def upload():
+    """聊天文件上传接口，返回 file_key/file_name/file_type/file_url/file_size"""
+    if 'file' not in request.files:
+        return jsonify({'error': '没有选择文件'}), 400
+    f = request.files['file']
+    if not f or f.filename == '':
+        return jsonify({'error': '没有选择文件'}), 400
+    filename = secure_filename(f.filename) or 'file'
+    if not _allowed_file(filename):
+        return jsonify({'error': '不支持的文件类型，支持图片和常见文档格式'}), 400
+
+    try:
+        key = save_file(f, filename)
+    except Exception as e:
+        return jsonify({'error': f'文件上传失败：{str(e)}'}), 500
+
+    ftype = _get_file_type(filename)
+    # 计算本地文件大小（如果是本地存储）
+    size = 0
+    try:
+        local_path = os.path.join(current_app.config['UPLOAD_FOLDER'], key)
+        if os.path.exists(local_path):
+            size = os.path.getsize(local_path)
+    except Exception:
+        pass
+
+    from flask import url_for
+    try:
+        url = url_for('uploaded_file', key=key)
+    except Exception:
+        url = '/uploads/' + key
+
+    return jsonify({
+        'ok': True,
+        'file_key': key,
+        'file_name': filename,
+        'file_type': ftype,
+        'file_url': url,
+        'file_size': size,
+        'file_size_str': _format_size(size),
+    })
 
 
 @chat_bp.route('/')
@@ -83,23 +156,42 @@ def friend_chat(user_id):
 @chat_bp.route('/friend/<int:user_id>/send', methods=['POST'])
 @login_required
 def friend_send(user_id):
-    """向好友发送消息（AJAX）"""
+    """向好友发送消息（AJAX）——支持文本 + 图片/文件"""
     if not current_user.is_friend_with(user_id):
         return jsonify({'error': '不是好友'}), 403
-    content = (request.json or {}).get('content', '').strip()
-    if not content:
-        return jsonify({'error': '消息不能为空'}), 400
+    data = request.json or {}
+    content = (data.get('content') or '').strip()
+    file_key = (data.get('file_key') or '').strip()
+    file_name = (data.get('file_name') or '').strip()
+    file_type = (data.get('file_type') or '').strip() or 'text'
+
+    if not content and not file_key:
+        return jsonify({'error': '消息不能是空的'}), 400
+    if file_key and file_type not in ('image', 'file'):
+        file_type = _get_file_type(file_name) if file_name else 'file'
+
     msg = ChatMessage(
-        sender_id=current_user.id, receiver_id=user_id, content=content
+        sender_id=current_user.id, receiver_id=user_id,
+        content=content or None,
+        file_key=file_key or None,
+        file_name=file_name or None,
+        file_type=file_type if file_key else 'text',
     )
     db.session.add(msg)
 
     # 通知
+    notif_text = ''
+    if file_type == 'image' and file_key:
+        notif_text = '[图片]'
+    elif file_key:
+        notif_text = f'[文件] {file_name}'
+    if content:
+        notif_text = (notif_text + ' ' + content).strip() if notif_text else content[:100]
     db.session.add(Notification(
         user_id=user_id,
         type='message',
         title=f'{current_user.username} 发来消息',
-        content=content[:100],
+        content=notif_text[:100] or '新消息',
         link=url_for('chat.friend_chat', user_id=current_user.id)
     ))
     db.session.commit()
@@ -215,17 +307,29 @@ def group_chat(group_id):
 @chat_bp.route('/group/<int:group_id>/send', methods=['POST'])
 @login_required
 def group_send(group_id):
-    """发送群聊消息（AJAX）"""
+    """发送群聊消息（AJAX）——支持文本 + 图片/文件"""
     member = ChatGroupMember.query.filter_by(
         group_id=group_id, user_id=current_user.id
     ).first()
     if not member:
         return jsonify({'error': '不是群成员'}), 403
-    content = (request.json or {}).get('content', '').strip()
-    if not content:
-        return jsonify({'error': '消息不能为空'}), 400
+    data = request.json or {}
+    content = (data.get('content') or '').strip()
+    file_key = (data.get('file_key') or '').strip()
+    file_name = (data.get('file_name') or '').strip()
+    file_type = (data.get('file_type') or '').strip() or 'text'
+
+    if not content and not file_key:
+        return jsonify({'error': '消息不能是空的'}), 400
+    if file_key and file_type not in ('image', 'file'):
+        file_type = _get_file_type(file_name) if file_name else 'file'
+
     msg = ChatGroupMessage(
-        group_id=group_id, sender_id=current_user.id, content=content
+        group_id=group_id, sender_id=current_user.id,
+        content=content or None,
+        file_key=file_key or None,
+        file_name=file_name or None,
+        file_type=file_type if file_key else 'text',
     )
     db.session.add(msg)
     db.session.commit()
