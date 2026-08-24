@@ -87,8 +87,9 @@ def create():
             owner_id=current_user.id
         )
         db.session.add(comp)
+        current_user.add_points(3)  # 发布招募奖励：+3
         db.session.commit()
-        flash('招募发布成功！', 'success')
+        flash('招募发布成功！+3 积分 🏆', 'success')
         return redirect(url_for('competition.detail', id=comp.id))
     return render_template('competition_edit.html')
 

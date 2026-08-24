@@ -20,6 +20,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default='user')  # 'user' | 'admin'
     avatar = db.Column(db.String(256))
     bio = db.Column(db.String(500))
+    points = db.Column(db.Integer, default=0)  # 积分/经验值
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # 关系
@@ -29,14 +30,69 @@ class User(UserMixin, db.Model):
     competitions = db.relationship('Competition', backref='owner', lazy='dynamic')
     textbooks = db.relationship('Textbook', backref='owner', lazy='dynamic')
 
+    # 等级阶梯：(最低积分, 等级名, 徽章颜色类)
+    LEVEL_TABLE = [
+        (0,    '萌新',       'bg-gray-100 text-gray-600 border-gray-200'),
+        (20,   '新生',       'bg-green-50 text-green-600 border-green-200'),
+        (50,   '学弟学妹',   'bg-teal-50 text-teal-600 border-teal-200'),
+        (100,  '学长学姐',   'bg-blue-50 text-blue-600 border-blue-200'),
+        (200,  '优秀学子',   'bg-indigo-50 text-indigo-600 border-indigo-200'),
+        (350,  '校园达人',   'bg-purple-50 text-purple-600 border-purple-200'),
+        (550,  '校园精英',   'bg-pink-50 text-pink-600 border-pink-200'),
+        (800,  '校园领袖',   'bg-orange-50 text-orange-600 border-orange-200'),
+        (1100, '校园传说',   'bg-red-50 text-red-600 border-red-200'),
+        (1500, '校桥大佬',   'bg-yellow-50 text-yellow-700 border-yellow-300'),
+    ]
+
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # 显式指定 pbkdf2:sha256，兼容 CentOS 7 旧版 OpenSSL（不支持 scrypt）
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
     def is_admin(self):
         return self.role == 'admin'
+
+    def add_points(self, delta):
+        """加分（负数为扣分，保护不低于 0）"""
+        if self.points is None:
+            self.points = 0
+        self.points = max(0, self.points + delta)
+
+    def get_level_info(self):
+        """返回等级信息字典：{level, name, color_class, prev_min, next_min, progress_pct}"""
+        pts = self.points or 0
+        # 找到当前等级索引
+        idx = 0
+        for i, (min_pts, _, _) in enumerate(self.LEVEL_TABLE):
+            if pts >= min_pts:
+                idx = i
+        level = idx + 1
+        min_pts, lvl_name, color = self.LEVEL_TABLE[idx]
+        # 下一等级
+        if idx < len(self.LEVEL_TABLE) - 1:
+            next_min = self.LEVEL_TABLE[idx + 1][0]
+        else:
+            next_min = None  # 已满级
+        # 进度百分比
+        if next_min is None:
+            progress = 100
+        else:
+            span = next_min - min_pts
+            if span <= 0:
+                progress = 0
+            else:
+                progress = int(min(100, max(0, (pts - min_pts) / span * 100)))
+        return {
+            'level': level,
+            'name': lvl_name,
+            'color_class': color,
+            'prev_min': min_pts,
+            'next_min': next_min,
+            'progress_pct': progress,
+            'points': pts,
+        }
 
     def get_friends(self):
         """获取所有已接受的好友列表（按用户名排序）"""

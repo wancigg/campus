@@ -62,9 +62,10 @@ def register():
 
         user = User(username=username, email=email)
         user.set_password(password)
+        user.add_points(10)  # 注册奖励：+10 积分
         db.session.add(user)
         db.session.commit()
-        flash('注册成功，请登录！', 'success')
+        flash('注册成功，请登录！赠 10 初始积分 🎁', 'success')
         return redirect(url_for('auth.login'))
     return render_template('register.html')
 

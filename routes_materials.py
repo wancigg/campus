@@ -77,8 +77,9 @@ def upload():
             user_id=current_user.id
         )
         db.session.add(material)
+        current_user.add_points(5)  # 上传资料奖励：+5
         db.session.commit()
-        flash('资料上传成功！', 'success')
+        flash('资料上传成功！+5 积分 📚', 'success')
         return redirect(url_for('materials.detail', id=material.id))
     return render_template('materials_upload.html')
 

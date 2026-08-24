@@ -67,6 +67,7 @@ def comment(id):
         return redirect(url_for('forum.post', id=id))
     comment = Comment(content=content, user_id=current_user.id, post_id=id)
     db.session.add(comment)
+    current_user.add_points(2)  # 评论奖励：+2
     if post.user_id != current_user.id:
         notif = Notification(
             user_id=post.user_id,
@@ -77,7 +78,7 @@ def comment(id):
         )
         db.session.add(notif)
     db.session.commit()
-    flash('回复成功！', 'success')
+    flash('回复成功！+2 积分 ✨', 'success')
     return redirect(url_for('forum.post', id=id))
 
 
@@ -93,6 +94,8 @@ def like(id):
     like = PostLike(post_id=id, user_id=current_user.id)
     db.session.add(like)
     if post.user_id != current_user.id:
+        # 被点赞的作者 +1 积分
+        post.author.add_points(1)
         notif = Notification(
             user_id=post.user_id,
             type='like',
@@ -228,6 +231,7 @@ def create():
         post = Post(title=title, content=content,
                     user_id=current_user.id, category_id=category_id)
         db.session.add(post)
+        current_user.add_points(5)  # 发帖奖励：+5
         db.session.flush()  # 获取 post.id
 
         # 处理图片：从隐藏字段获取已上传的图片文件名列表
@@ -241,7 +245,7 @@ def create():
                     ))
 
         db.session.commit()
-        flash('发帖成功！', 'success')
+        flash('发帖成功！+5 积分 🎉', 'success')
         return redirect(url_for('forum.post', id=post.id))
     return render_template('forum_edit.html', categories=categories)
 

@@ -103,8 +103,9 @@ def create():
             user_id=current_user.id
         )
         db.session.add(textbook)
+        current_user.add_points(3)  # 发布闲置奖励：+3
         db.session.commit()
-        flash('闲置物品发布成功！', 'success')
+        flash('闲置物品发布成功！+3 积分 🛒', 'success')
         return redirect(url_for('textbook.detail', id=textbook.id))
     return render_template('textbook_edit.html', categories=CATEGORIES)
 

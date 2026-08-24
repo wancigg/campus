@@ -92,6 +92,29 @@ def seed():
         ]
 
         user_map = {}
+        # 为种子用户预置初始积分（根据其角色活跃程度分配）
+        INITIAL_POINTS = {
+            "admin":         0,    # 管理员不参与积分
+            "小明学长":      220,  # 论坛活跃
+            "图书馆小助手":  300,  # 资料上传大户
+            "竞赛达人李":    160,  # 竞赛招募+讨论
+            "文艺少女小王":  120,  # 校园生活帖子
+            "篮球少年阿杰":  80,   # 发闲置运动用品
+            "考研上岸学姐":  380,  # 核心贡献：资料+考研帖子
+            "前端小赵":      140,  # 技术帖
+            "摄影爱好者阿林":90,
+            "吉他手小陈":    70,
+            "实验室搬砖人":  130,  # 技术/工具帖
+            "食堂探店博主":  150,  # 生活分享帖
+            "考研二战老学长":250,  # 经验+资料
+            "骑行爱好者阿强":60,
+            "萌新小学妹":    20,   # 真·萌新
+            "留学备考ing":   100,
+            "二手交易达人":  190,  # 闲置交易多
+            "学生会小刘":    110,
+            "熬夜写代码":    170,  # 技术帖
+            "考证达人周姐":  140,  # 考证经验
+        }
         for u in USERS_DATA:
             existing = User.query.filter_by(username=u["username"]).first()
             if existing:
@@ -103,6 +126,7 @@ def seed():
                     created_at=rand_date(90),
                 )
                 obj.set_password(u["password"])
+                obj.add_points(INITIAL_POINTS.get(u["username"], 10))  # 默认 10 分（注册奖励）
                 db.session.add(obj)
                 user_map[u["username"]] = obj
         db.session.commit()

@@ -1,6 +1,6 @@
 """校桥 CampusBridge - 校园资源交换与交流平台"""
 import os
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request
 from config import Config
 from extensions import db, login_manager
 
@@ -68,6 +68,82 @@ def create_app():
                                textbook_count=textbook_count,
                                competition_count=competition_count)
 
+    # 全站聚合搜索
+    @app.route('/search')
+    def search():
+        from models import Post, Material, Textbook, User
+        from sqlalchemy import or_
+
+        keyword = (request.args.get('q') or '').strip()
+        category = (request.args.get('type') or 'all').strip()
+        page = request.args.get('page', 1, type=int)
+
+        posts = []
+        materials = []
+        textbooks = []
+        users = []
+        posts_count = 0
+        materials_count = 0
+        textbooks_count = 0
+        users_count = 0
+
+        if keyword:
+            like = f'%{keyword}%'
+            # 1. 论坛帖子：标题/内容/摘要匹配
+            if category in ('all', 'posts'):
+                post_query = Post.query.filter(or_(
+                    Post.title.contains(keyword),
+                    Post.content.contains(keyword),
+                ))
+                posts_count = post_query.count()
+                posts = post_query.order_by(Post.created_at.desc()).limit(8).all()
+
+            # 2. 学习资料：标题/描述/分类
+            if category in ('all', 'materials'):
+                mat_query = Material.query.filter(or_(
+                    Material.title.contains(keyword),
+                    Material.description.contains(keyword),
+                    Material.category.contains(keyword),
+                ))
+                materials_count = mat_query.count()
+                materials = mat_query.order_by(Material.created_at.desc()).limit(6).all()
+
+            # 3. 二手市场：标题/描述/分类/品牌/出版社
+            if category in ('all', 'textbooks'):
+                tb_query = Textbook.query.filter(or_(
+                    Textbook.title.contains(keyword),
+                    Textbook.description.contains(keyword),
+                    Textbook.category.contains(keyword),
+                    Textbook.author.contains(keyword),
+                    Textbook.publisher.contains(keyword),
+                ))
+                textbooks_count = tb_query.count()
+                textbooks = tb_query.order_by(Textbook.created_at.desc()).limit(6).all()
+
+            # 4. 校园用户：用户名/简介/学校/专业
+            if category in ('all', 'users'):
+                user_query = User.query.filter(or_(
+                    User.username.contains(keyword),
+                    User.bio.contains(keyword),
+                    User.school.contains(keyword),
+                    User.major.contains(keyword),
+                ))
+                users_count = user_query.count()
+                users = user_query.order_by(User.points.desc()).limit(6).all()
+
+        total_count = posts_count + materials_count + textbooks_count + users_count
+
+        return render_template(
+            'search.html',
+            keyword=keyword,
+            category=category,
+            posts=posts, posts_count=posts_count,
+            materials=materials, materials_count=materials_count,
+            textbooks=textbooks, textbooks_count=textbooks_count,
+            users=users, users_count=users_count,
+            total_count=total_count,
+        )
+
     # 本地文件服务（降级方案）
     @app.route('/uploads/<path:key>')
     def uploaded_file(key):
@@ -85,6 +161,40 @@ def create_app():
     @app.errorhandler(500)
     def server_error(e):
         return render_template('index.html', error_500=True), 500
+
+    # ════════════════════════════════════════════════════════════
+    # 自动数据库迁移（兼容 gunicorn 生产部署）
+    # ════════════════════════════════════════════════════════════
+    with app.app_context():
+        from sqlalchemy import text
+        try:
+            db.create_all()
+        except Exception:
+            pass
+        # users 表：points 积分列（等级体系）
+        try:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        # materials 表：views 浏览量
+        try:
+            db.session.execute(text("ALTER TABLE materials ADD COLUMN views INTEGER DEFAULT 0"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        # textbooks 表：扩展列
+        for _col, _type in [
+            ('category', "VARCHAR(50) DEFAULT ''"),
+            ('condition', "VARCHAR(50) DEFAULT ''"),
+            ('description_images', "TEXT DEFAULT ''"),
+            ('trade_status', "VARCHAR(50) DEFAULT 'available'"),
+        ]:
+            try:
+                db.session.execute(text(f"ALTER TABLE textbooks ADD COLUMN {_col} {_type}"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
     return app
 
@@ -192,6 +302,12 @@ if __name__ == '__main__':
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+        # 迁移：为 users 表添加 points 积分列（用户积分/等级体系）
+        try:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN points INTEGER DEFAULT 0"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         # 初始化默认数据
         from models import User, ForumCategory
         if not User.query.filter_by(username='admin').first():
