@@ -1,126 +1,140 @@
-# 校桥 CampusBridge - 校园资源交换与交流平台
+# 校桥 CampusBridge · 校园资源交换与交流平台
 
-面向全校学生的资源共享社区，整合**学习资料共享、校园论坛（AI 智能摘要）、竞赛组队、二手教材、社交好友、即时聊天**六大核心功能。
+> 面向全校学生的一站式资源共享社区：**学习资料 / 校园论坛 / 竞赛组队 / 二手教材 / 社交好友 / 即时聊天** 六大核心模块，整合 **AI 摘要（DeepSeek）**、**用户积分等级阶梯**、**4 类差异化页面布局范式**（淘宝橱窗 / 知乎信息流 / 瀑布流 / Trello 看板），内置自动建表与种子数据，开箱即用。
 
 ---
 
-## ✨ 特色功能
+## ✨ 核心亮点
 
-- 🤖 **AI 智能摘要**：论坛帖子一键生成摘要、核心观点、建议标签（基于 DeepSeek Chat API）
-- 👥 **社交好友**：发现同校同学、互加好友、个人主页
-- 💬 **即时聊天**：单聊、群聊、创建群组
-- 📚 **学习资料**：上传分类、在线预览、下载评分
-- 🗣️ **校园论坛**：分区讨论、点赞收藏、回复搜索
-- 🏆 **竞赛组队**：发布招募、申请加入、队长审核
-- 📖 **二手教材**：闲置发布、私信沟通、状态跟踪
-- 🔔 **消息通知**：覆盖评论、点赞、申请、私信全场景
-- 🛡️ **后台管理**：RBAC 权限、用户/内容/分区管理
+### 🤖 AI 智能摘要
+论坛帖子详情页右上角一键调用 DeepSeek Chat API，输出「**摘要 · 核心观点 · 建议标签**」三段式 Markdown 结果，未配置 API Key 时按钮自动隐藏不报错。
+
+### 🎨 A + B 方案 UI 改版（2026-08 已上线）
+**A 方案 · 首页信息架构重构**：Hero 大搜索条（含热门搜索胶囊）→ 平台数据大盘（6 张实时统计卡）→ 功能快捷入口（6 卡片）→ 精选竞赛 → 最新动态（双栏）
+**B 方案 · 4 个列表页差异化布局范式**，答辩视觉更有层次：
+
+| 模块 | 布局范式 | 特色 UI |
+|---|---|---|
+| 校园论坛 `/forum/` | **知乎式 2/3 + 1/3 双栏信息流** | 顶部 4 渐变统计卡 + 热门板块榜；左头像 + Lv.等级徽章；右栏活跃度进度条 Top3 |
+| 学习资料 `/materials/` | **CSS columns-3 瀑布流** | 扩展名巨型彩色标签（PDF/DOC/PPT 分色）+ 5 角实心星评分 |
+| 竞赛组队 `/competition/` | **Trello 式 3 列看板** | `招募中` / `满员` / `已截止` 三态动态分组 + 满员 -6° 红色印章 + 进度条 |
+| 二手教材 `/textbook/` | **淘宝式橱窗** | 封面 + 价格红绿角标 + 卖家半透明悬浮条 + ❤ 💬 悬浮操作按钮 + 顶部 4 渐变统计卡 + 标签云 |
+
+### 🛡️ 用户积分等级体系（10 级阶梯）
+User 表按积分（points）从「萌新→新生→学弟学妹→学长学姐→优秀学子→校园达人→校园精英→校园领袖→校园传说→校桥大佬」，每个等级有独立颜色类徽章，通过 `user.get_level_info()` 渲染在个人主页、论坛帖子头像旁。
+
+### 💬 即时聊天（含图片 & 文件上传）
+单聊 / 群聊 / 创建群组，最新支持私聊上传图片（`/chat/upload` 接口，本地磁盘存储），消息气泡自动渲染图片卡片与文件下载按钮。
+
+### 🔒 错误处理兜底
+403 / 500 独立渐变错误页（不再伪装首页导致混淆路由）；404 自动跳到搜索结果页框架。
 
 ---
 
 ## 🛠️ 技术栈
 
 | 层级 | 技术 |
-|------|------|
-| **后端框架** | Flask 3.1 + Jinja2 + Flask-SQLAlchemy 2.0 |
-| **前端样式** | HTML5 + Tailwind CSS + 原生 JavaScript |
-| **数据库** | MySQL 5.7+ / MariaDB 5.5+（兼容 CentOS 7 自带 MariaDB） |
-| **AI 集成** | DeepSeek Chat API（deepseek-chat 模型） |
-| **文件存储** | 本地磁盘 / 腾讯云 COS（可切换） |
-| **生产部署** | Gunicorn 23 + Nginx + systemd |
-| **公网穿透** | ngrok（可选，用于演示/远程访问） |
-| **Python 版本** | Python 3.9+（已验证 3.9.20 完美运行） |
+|---|---|
+| **后端框架** | Flask 3.1 + Jinja2 + Flask-SQLAlchemy 3.1 |
+| **前端样式** | HTML5 + Tailwind CSS + 原生 JavaScript（`static/js/main.js` + `animations.js`） |
+| **数据库** | **MySQL 5.7+ 优先**，启动时若无法连接**自动回退 SQLite**（无需额外装 MySQL 也能跑，见 config.py L18-L42） |
+| **AI 集成** | DeepSeek Chat API（deepseek-chat 模型，论坛 AI 摘要） |
+| **文件存储** | 本地磁盘 `/uploads/`（默认）/ 腾讯云 COS（填 `.env` 自动切换） |
+| **生产部署** | Gunicorn 23 + systemd（CentOS 7.4 已验证） |
+| **Python 版本** | Python 3.9+（已验证 3.9.20） |
+
+---
+
+## 📦 数据库真实种子数据
+
+执行 `seed_data.py` 后初始化（CentOS 7 服务器上已验证）：
+
+| 表 | 条数 | 备注 |
+|---|---|---|
+| User | 21 | 管理员：`admin / admin123` |
+| Material（学习资料） | 13 | 含 PDF/DOC 等示例文件元数据 |
+| Post（论坛帖子） | 63 | 分区 5 类：学习交流 / 校园生活 / 技术讨论 / 求职升学 / 闲聊灌水 |
+| Textbook（二手教材） | 15 | `trade_status`：available / reserved / sold |
+| Competition（竞赛） | 8 | `status`：`open` × 7 + `closed` × 1；`deadline` 多在 2026-09/10；`team_size=0` 视作无限名额 |
 
 ---
 
 ## 🚀 快速开始（本地开发）
 
 ### 1. 配置环境变量
-
-复制 `.env.example` 为 `.env`，填入真实值：
-
-```bash
-cp .env.example .env   # Windows: 手动复制改名
-```
-
-编辑 `.env`：
-
+复制 `.env.example` 为 `.env`（Windows 下手动改名），填入真实值：
 ```env
-# ===== 必配：数据库 =====
+# ===== 数据库：未填或 MySQL 不通自动回退 SQLite =====
 MYSQL_USER=root
-MYSQL_PASSWORD=your_password
+MYSQL_PASSWORD=
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_DATABASE=campus_bridge
 
-# ===== 必配：Flask =====
+# ===== Flask 密钥（生产必改） =====
 SECRET_KEY=change-me-to-random-string
 
-# ===== 可选：腾讯云 COS（不填自动用本地存储）=====
+# ===== AI 摘要（不填论坛 AI 按钮自动隐藏）=====
+# 申请：https://platform.deepseek.com
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+
+# ===== 可选：腾讯云 COS（不填自动本地磁盘）=====
 COS_SECRET_ID=
 COS_SECRET_KEY=
 COS_REGION=ap-guangzhou
 COS_BUCKET=
 
-# ===== 可选：AI 摘要（不填论坛 AI 按钮自动隐藏）=====
-# 申请地址：https://platform.deepseek.com
-DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
-
-# ===== 可选：上传限制 =====
+# ===== 上传大小限制（MB）=====
 MAX_CONTENT_LENGTH=50
 ```
 
-### 2. 安装 Python 依赖
-
+### 2. 安装依赖
 ```bash
 pip install -r requirements.txt
 ```
 
-> ⚠️ **CentOS 7 注意**：系统自带 OpenSSL 1.0.2 不兼容 urllib3 2.x，需锁定版本：
+> ⚠️ **CentOS 7 用户注意**：系统自带 OpenSSL 1.0.2 不兼容 urllib3 2.x，必须锁定版本：
 > ```bash
 > pip install "urllib3<=1.26.18" "requests<=2.27.1"
 > ```
 
-### 3. 初始化数据库
-
+### 3. 初始化数据库 + 种子数据
 ```bash
-# 方式一：自动建表 + 初始化种子数据（推荐）
 python seed_data.py
-
-# 方式二：用 SQL 脚本手动导入
-mysql -u root -p campus_bridge < db_init.sql
 ```
-
-初始化后默认账号：
-- **管理员**：`admin` / `admin123`（请尽快修改密码）
-- **普通用户**：自行注册
-- **论坛分区**：学习交流、校园生活、技术讨论、求职升学、闲聊灌水
+脚本会自动执行：SQLAlchemy `db.create_all()` 建表 → 分区 / 管理员 / 示例资料 / 示例帖子 / 示例竞赛 / 示例二手 逐条插入。SQLite 模式下数据库文件自动创建为 `./campus_bridge.db`。
 
 ### 4. 启动开发服务器
-
 ```bash
 python app.py
 ```
+浏览器访问：**http://127.0.0.1:5000**
 
-### 5. 访问
-
-浏览器打开 http://127.0.0.1:5000
+### 5. 开发调试：清空 Gunicorn 字节码缓存
+任何 Python 代码改动后生产部署记得清 `__pycache__`：
+```bash
+find /opt/campus-bridge -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+find /opt/campus-bridge -name "*.pyc" -delete 2>/dev/null
+systemctl restart campus-bridge
+```
 
 ---
 
-## 📦 功能模块详解
+## 🧩 9 个 Flask 蓝图模块
 
-| 模块 | 蓝图 | 路由文件 | 模板 | 说明 |
-|------|------|----------|------|------|
-| 用户认证 | `auth_bp` | [routes_auth.py](routes_auth.py) | login.html, register.html, student.html, user_profile.html | 注册/登录/学生认证/个人主页 |
-| 学习资料 | `materials_bp` | [routes_materials.py](routes_materials.py) | materials_list.html, materials_detail.html, materials_upload.html | 上传/浏览/预览/下载/评分 |
-| 校园论坛 | `forum_bp` | [routes_forum.py](routes_forum.py) | forum_index.html, forum_category.html, forum_edit.html, forum_post.html | 分区/发帖/回复/点赞/**AI 摘要** |
-| 竞赛组队 | `competition_bp` | [routes_competition.py](routes_competition.py) | competition_list.html, competition_detail.html, competition_edit.html | 招募/申请/审核/成员管理 |
-| 二手教材 | `textbook_bp` | [routes_textbook.py](routes_textbook.py) | textbook_list.html, textbook_detail.html, textbook_edit.html | 发布/搜索/私信/交易跟踪 |
-| 消息通知 | `message_bp` | [routes_message.py](routes_message.py) | message_list.html | 系统通知集中查看 |
-| 社交好友 | `social_bp` | [routes_social.py](routes_social.py) | social_discover.html, social_friends.html | 发现同学/加好友/好友列表 |
-| 即时聊天 | `chat_bp` | [routes_chat.py](routes_chat.py) | chat_list.html, chat_friend.html, chat_group.html, chat_group_create.html | 单聊/群聊/创建群组 |
-| 后台管理 | `admin_bp` | [routes_admin.py](routes_admin.py) | admin_dashboard.html | 用户/内容/分区管理 |
+| 模块 | Blueprint | 路由文件 | 模板 | 说明 |
+|---|---|---|---|---|
+| 用户认证 | `auth_bp` | [routes_auth.py](routes_auth.py) | login.html / register.html / student.html / user_profile.html | 注册 / 登录 / 学生认证 / 个人主页 / 等级徽章 |
+| 学习资料 | `materials_bp` | [routes_materials.py](routes_materials.py) | materials_list.html / materials_detail.html / materials_upload.html | 上传 / 分类 / 瀑布流展示 / 评分 / 下载 / 预览 |
+| 校园论坛 | `forum_bp` | [routes_forum.py](routes_forum.py) | forum_index.html / forum_category.html / forum_edit.html / forum_post.html | 分区 / 发帖 / 回复 / 点赞 / **AI 摘要** / 等级徽章 |
+| 竞赛组队 | `competition_bp` | [routes_competition.py](routes_competition.py) | competition_list.html / competition_detail.html / competition_edit.html | 招募 / 申请 / 审核 / **3 列看板（招募中·满员·已截止）** |
+| 二手教材 | `textbook_bp` | [routes_textbook.py](routes_textbook.py) | textbook_list.html / textbook_detail.html / textbook_edit.html | 发布 / 淘宝式橱窗 / 交易状态跟踪（available / reserved / sold） |
+| 消息通知 | `message_bp` | [routes_message.py](routes_message.py) | message_list.html | 评论 / 点赞 / 申请 / 私信 系统通知 |
+| 社交好友 | `social_bp` | [routes_social.py](routes_social.py) | social_discover.html / social_friends.html | 发现同学 / 加好友 / 好友列表（注意 endpoint 前缀是 `social.*` 非 `chat.*`） |
+| 即时聊天 | `chat_bp` | [routes_chat.py](routes_chat.py) | chat_list.html / chat_friend.html / chat_group.html / chat_group_create.html | 单聊 / 群聊 / **图片 & 文件上传卡片** |
+| 后台管理 | `admin_bp` | [routes_admin.py](routes_admin.py) | admin_dashboard.html | RBAC 管理员权限（`@admin_required`）/ 用户 / 内容 / 分区管理 |
+
+> 🔔 endpoint 小贴士：之前 A 方案首页大盘热修过两个错误 Blueprint：`chat.friend_list` → `social.friend_list`，`forum.post_detail` → `forum.post`（见 [index.html](templates/index.html) L236 / L416 / L462），不要写错。
 
 ---
 
@@ -128,141 +142,116 @@ python app.py
 
 ```
 项目/
-├── app.py                  # Flask 主入口，注册 9 个蓝图
-├── config.py               # 配置加载（从 .env 读取环境变量）
-├── extensions.py           # Flask 扩展初始化（db、login_manager）
-├── models.py               # SQLAlchemy 数据库模型（User、Post 等）
-├── storage.py              # 文件存储抽象层（本地/COS 切换）
-├── decorators.py           # 权限装饰器（@admin_required 等）
-├── forms.py                # WTForms 表单校验
-├── seed_data.py            # 数据库初始化 + 种子数据脚本
-├── db_init.sql             # 数据库建表 SQL（备选）
+├── app.py                   # Flask 主入口，create_app() + 注册 9 蓝图 + 自动建表迁移 + 403/404/500 错误页
+├── config.py                # 配置加载（MySQL 优先，不通自动回退 SQLite）
+├── extensions.py            # Flask 扩展初始化（db / login_manager）
+├── models.py                # 10 个 SQLAlchemy 模型（User 10 级等级表 / Post 点赞收藏评论图片关系 / ...）
+├── storage.py               # 文件存储抽象层（本地磁盘 ↔ 腾讯云 COS 可切换）
+├── decorators.py            # 权限装饰器（@login_required / @admin_required）
+├── forms.py                 # WTForms 表单校验
+├── seed_data.py             # 自动建表 + 种子数据（真实部署 User=21 / Post=63 等）
+├── db_init.sql              # 备用：MySQL 手工建表 SQL
 │
-├── routes_auth.py          # 用户认证蓝图
-├── routes_materials.py     # 学习资料蓝图
-├── routes_forum.py         # 校园论坛蓝图（含 AI 摘要接口）
-├── routes_competition.py   # 竞赛组队蓝图
-├── routes_textbook.py      # 二手教材蓝图
-├── routes_message.py       # 消息通知蓝图
-├── routes_admin.py         # 后台管理蓝图
-├── routes_social.py        # 社交好友蓝图
-├── routes_chat.py          # 即时聊天蓝图
+├── routes_auth.py           # 用户认证
+├── routes_materials.py      # 学习资料
+├── routes_forum.py          # 校园论坛（含 /post/<id>/ai-summary AI 接口）
+├── routes_competition.py    # 竞赛组队（3 态动态分组算法：status=closed OR deadline<today → closed；approved≥team_size → full）
+├── routes_textbook.py       # 二手教材（5 统计卡 + 分类标签云）
+├── routes_message.py        # 消息通知
+├── routes_admin.py          # 后台管理
+├── routes_social.py         # 社交好友
+├── routes_chat.py           # 即时聊天（含图片上传接口 /chat/upload）
 │
-├── templates/              # Jinja2 模板（27 个页面）
-│   ├── base.html           # 公共基模板（导航栏 + 页脚）
-│   ├── index.html          # 首页
-│   ├── login.html / register.html
-│   ├── student.html        # 学生认证
-│   ├── user_profile.html   # 个人主页
-│   ├── forum_*.html        # 论坛（含 AI 摘要弹窗 forum_post.html）
-│   ├── materials_*.html    # 学习资料
-│   ├── competition_*.html  # 竞赛组队
-│   ├── textbook_*.html     # 二手教材
-│   ├── social_*.html       # 社交好友
-│   ├── chat_*.html         # 即时聊天（单聊/群聊）
-│   ├── message_list.html   # 消息通知
-│   └── admin_dashboard.html# 后台管理
+├── templates/               # 26 个 Jinja2 模板
+│   ├── base.html            # 公共基模板（导航栏 logo 右侧搜索框必须包 form action=search）
+│   ├── index.html           # 首页 A 方案（Hero 搜索条 + 大盘 6 卡 + 功能入口 + 最新动态）
+│   ├── search.html          # 全站 4 类聚合搜索（帖子 / 资料 / 二手 / 用户）
+│   ├── forum_index.html     # B 方案 · 知乎式双栏信息流（含 Lv.等级徽章）
+│   ├── materials_list.html  # B 方案 · 瀑布流
+│   ├── competition_list.html# B 方案 · Trello 3 列看板
+│   ├── textbook_list.html   # B 方案 · 淘宝橱窗
+│   └── ...（其余 18 个页面见 LS 目录）
 │
-├── static/                 # 静态资源
-│   ├── css/style.css       # 自定义样式
+├── static/
+│   ├── css/style.css        # 自定义样式
 │   └── js/
-│       ├── main.js         # 通用交互逻辑
-│       └── animations.js   # 页面动画效果
+│       ├── main.js          # 通用交互（搜索框 / 悬浮按钮 / 弹窗）
+│       └── animations.js    # 页面入场动画 / 数字滚动 / 进度条补帧
 │
-├── uploads/                # 本地上传目录（自动创建，不提交 Git）
-├── .env                    # 真实环境变量（不提交 Git，已在 .gitignore）
-├── .env.example            # 环境变量模板（含 AI 配置说明）
+├── uploads/                 # 本地上传目录（自动创建，不提交 Git）
+├── .env                     # 生产环境变量（不提交 Git，已在 .gitignore）
+├── .env.example             # 环境变量模板
 ├── .gitignore
-├── requirements.txt        # Python 依赖清单
-├── package.json            # Node 辅助工具（PPT 生成等，可选）
-└── README.md               # 本文件
+├── requirements.txt         # Python 依赖
+├── package.json             # 可选：generate_ppt.js 答辩 PPT 生成工具
+└── README.md                # 本文件
 ```
 
 ---
 
 ## 🤖 AI 摘要功能说明
 
-论坛帖子详情页右上角有蓝色 **「AI 摘要」** 按钮，点击后：
+论坛帖子详情页右上角蓝色「**AI 摘要**」按钮 → 前端调 `/post/<id>/ai-summary` → 后端拼接 `标题 + 正文` → 请求 DeepSeek Chat API → 模型输出三段式 Markdown → 前端弹窗渲染。
 
-1. 前端调用 `/post/<id>/ai-summary` 接口
-2. 后端拼接待摘要内容（标题 + 正文），请求 DeepSeek Chat API
-3. 提示词要求模型输出三段式结构：**摘要 + 核心观点 + 建议标签**
-4. 前端以弹窗形式渲染 Markdown 风格结果
-
-### 配置步骤
-
-1. 去 [https://platform.deepseek.com](https://platform.deepseek.com) 注册并创建 API Key
-2. 把 Key 填入 `.env` 的 `DEEPSEEK_API_KEY`
-3. 重启 Flask 服务即可（不填 Key 时按钮自动隐藏不报错）
+配置步骤：
+1. [https://platform.deepseek.com](https://platform.deepseek.com) 注册 → 创建 API Key
+2. `.env` 填 `DEEPSEEK_API_KEY=sk-...`
+3. 重启 Flask（不填按钮自动隐藏，不影响其他功能）
 
 ---
 
-## 🏭 生产部署（CentOS 7 方案）
+## 🏭 生产部署（CentOS 7.4 已验证）
 
-已验证可运行方案：Python 3.9.20 + Gunicorn 23 + Nginx + MariaDB 5.5
-
-### 1. 代码部署路径
-
+### 1. 真实部署路径与数据库位置
 ```
 /opt/campus-bridge/
-├── app.py  routes_*.py  models.py  ...（项目文件）
+├── app.py  routes_*.py  models.py  config.py  ...
 ├── .env           # 生产环境变量（含真实 DEEPSEEK_API_KEY）
-└── venv/          # Python 虚拟环境
+├── campus_bridge.db  ← ⚠️ SQLite 模式下的实际数据库
+│                       WorkingDirectory=/opt/campus-bridge 决定相对路径！
+│                       gunicorn 必须从该目录启动，否则会连空库出现「大盘全 0」
+├── uploads/        # 用户上传资料/帖子图片/聊天图片
+└── venv/           # Python 3.9.20 虚拟环境
 ```
 
-### 2. Gunicorn 启动命令
-
-```bash
-cd /opt/campus-bridge
-source venv/bin/activate
-gunicorn -w 4 -b 127.0.0.1:8000 --timeout 120 "app:create_app()"
-```
-
-### 3. Systemd 服务（`/etc/systemd/system/campus-bridge.service`）
-
+### 2. Gunicorn systemd 服务：`/etc/systemd/system/campus-bridge.service`
 ```ini
 [Unit]
-Description=CampusBridge Flask App
-After=network.target mariadb.service
+Description=CampusBridge Flask App (Gunicorn)
+After=network.target
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/opt/campus-bridge
 Environment="PATH=/opt/campus-bridge/venv/bin"
-ExecStart=/opt/campus-bridge/venv/bin/gunicorn -w 4 -b 127.0.0.1:8000 --timeout 120 --access-logfile /var/log/campus-bridge-access.log --error-logfile /var/log/campus-bridge-error.log "app:create_app()"
+ExecStart=/opt/campus-bridge/venv/bin/gunicorn \
+  -w 4 -b 127.0.0.1:8000 --timeout 120 \
+  --access-logfile /var/log/campus-bridge-access.log \
+  --error-logfile  /var/log/campus-bridge-error.log \
+  "app:create_app()"
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 ```
-
 管理命令：
 ```bash
 systemctl daemon-reload
 systemctl enable campus-bridge
-systemctl start campus-bridge
+systemctl start  campus-bridge
 systemctl status campus-bridge
 ```
 
-### 4. Nginx 反向代理（`/etc/nginx/conf.d/campus-bridge.conf`）
-
+### 3. Nginx 反向代理（可选，未启用时 Gunicorn 直接绑公网 80）
 ```nginx
 server {
     listen 80;
     server_name _;
-
     client_max_body_size 50M;
 
-    location /static/ {
-        alias /opt/campus-bridge/static/;
-        expires 7d;
-    }
-
-    location /uploads/ {
-        alias /opt/campus-bridge/uploads/;
-        expires 7d;
-    }
+    location /static/  { alias /opt/campus-bridge/static/;  expires 7d; }
+    location /uploads/ { alias /opt/campus-bridge/uploads/; expires 7d; }
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -275,51 +264,35 @@ server {
 }
 ```
 
-### 5. ngrok 公网穿透（可选，用于演示）
-
-安装 ngrok 并配置 Authtoken 后，创建 systemd 服务后台常驻：
-
-```ini
-# /etc/systemd/system/ngrok.service
-[Unit]
-Description=ngrok HTTP Tunnel for CampusBridge
-After=network.target
-
-[Service]
-Type=simple
-User=root
-ExecStart=/usr/local/bin/ngrok http 8000
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-查询当前公网 URL：
-```bash
-curl -s http://127.0.0.1:4040/api/tunnels | python3 -c "import sys,json; print(json.load(sys.stdin)['tunnels'][0]['public_url'])"
-```
+### 4. 常见坑位清单
+| 坑 | 症状 | 解法 |
+|---|---|---|
+| **__pycache__ 读旧字节码** | 改了 Python 文件重启还显示旧逻辑 | `find ... -name __pycache__ -exec rm -rf {} +` |
+| **SQLite 相对路径连空库** | 首页大盘 6 张卡全 0（数据库明明有 21 用户） | WorkingDirectory 必须设成 `/opt/campus-bridge` |
+| **旧 base.html 搜索框只刷新** | 导航栏输入搜索词回车停在当前页 | SCP 最新 `templates/base.html` 到服务器（已包 `<form action=url_for('search') method=GET>`） |
+| **500 页面伪装成首页** | 访问 `/forum/` 视觉上=首页（实际 500） | 已修！app.py L220-249 errorhandler 改成独立渐变 500 卡片 |
+| **Post.images eager loading 报错** | 论坛 500：`'Post.images' does not support object population` | 已修！models.py images 关系 `lazy='dynamic'` → `lazy='select'` |
+| **`p.author.level_badge` UndefinedError** | 论坛 500 | 已修！forum_index.html 改成 `p.author.get_level_info()` 返回字典 |
 
 ---
 
-## 🔒 安全注意事项
+## 🔒 安全合规
 
-1. **不要提交真实密钥**：`.env` 已在 `.gitignore`，`.env.example` 只放占位符
-2. **修改默认密码**：生产环境务必修改 `admin/admin123` 默认管理员密码
-3. **更换 SECRET_KEY**：用随机字符串替换开发用的固定密钥
-4. **限制上传目录**：Nginx 中 `uploads/` 不要开启 PHP/脚本执行权限
-5. **API Key 安全**：DeepSeek Key 定期轮换，不要硬编码在代码里
+1. **不提交真实密钥**：`.env` 已在 `.gitignore`，`.env.example` 只保留占位符
+2. **改默认管理员密码**：生产上登录 admin/admin123 后立刻在「个人设置」改密码
+3. **换 SECRET_KEY**：`python -c "import secrets;print(secrets.token_hex(32))"` 生成随机串
+4. **限制上传目录执行权限**：Nginx `/uploads/` 路径禁止解析 PHP / 脚本
+5. **DeepSeek API Key 定期轮换**：不要硬编码在代码里，只走 `.env`
 
 ---
 
-## 📝 TODO / 后续可扩展
+## 📝 可扩展路线（TODO）
 
-- [ ] WebSocket 改造聊天模块（当前为轮询）
-- [ ] 接入微信/QQ 第三方登录
-- [ ] 资料全文检索（Elasticsearch / Whoosh）
-- [ ] 管理员操作审计日志
-- [ ] 移动端响应式优化（当前已可用，可进一步打磨）
+- [ ] **WebSocket 改造聊天**：当前是前端轮询 `/chat/api/poll/<friend_id>`，下一步换 Flask-SocketIO
+- [ ] **第三方登录**：微信 / QQ OAuth
+- [ ] **资料全文检索**：接入 Whoosh（本地）或 Elasticsearch（生产）
+- [ ] **管理员审计日志**：操作入库 + 后台可查询
+- [ ] **移动端打磨**：当前响应式可用，可进一步做小程序 / PWA
 
 ---
 
