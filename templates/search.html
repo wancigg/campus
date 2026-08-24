@@ -158,7 +158,7 @@
                             …
                         </p>
                         <div class="flex items-center gap-2 mt-2.5 text-xs text-gray-400">
-                            <span>👤 {{ m.uploader.username if m.uploader else '匿名' }}</span>
+                            <span>👤 {{ m.author.username if m.author else '匿名' }}</span>
                             <span>·</span>
                             <span>📂 {{ m.file_type or '文件' }}</span>
                             <span>·</span>
@@ -211,7 +211,7 @@
                             {{ t.author or '' }}{% if t.publisher %} · {{ t.publisher }}{% endif %}
                         </p>
                         <div class="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                            <span>👤 {{ t.seller.username if t.seller else '匿名' }}</span>
+                            <span>👤 {{ t.owner.username if t.owner else '匿名' }}</span>
                             <span>·</span>
                             <span>{{ t.created_at.strftime('%m月%d日') }}</span>
                         </div>
@@ -232,7 +232,7 @@
                 校园用户
                 <span class="text-sm font-normal text-gray-400 ml-1">共 {{ users_count }} 条</span>
             </h2>
-            <a href="{{ url_for('social.discover', q=keyword) if url_for('social.discover') else '#' }}" class="text-xs font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+            <a href="/social/discover" class="text-xs font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
                 发现更多同学 →
             </a>
         </div>
@@ -264,11 +264,6 @@
                             </span>
                             {% endif %}
                         </div>
-                        {% if u.school or u.major %}
-                        <p class="text-xs text-gray-500 line-clamp-1">
-                            🎓 {% if u.school %}{{ u.school }}{% endif %}{% if u.major %} · {{ u.major }}{% endif %}
-                        </p>
-                        {% endif %}
                         {% if u.bio %}
                         <p class="text-xs text-gray-400 line-clamp-1 mt-0.5">
                             “{{ (u.bio or '')[:40] }}{% if u.bio and u.bio|length > 40 %}…{% endif %}”
