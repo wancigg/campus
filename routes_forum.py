@@ -129,9 +129,18 @@ def comment(id):
     if not ok:
         flash(msg, 'error')
         return redirect(url_for('forum.post', id=id))
+
+    # ====== 评论内容审核 ======
+    check = moderate_text(content, context_type='comment')
+    if check['reject']:
+        flash(f'评论失败：{check["reason"]}', 'error')
+        return redirect(url_for('forum.post', id=id))
+
     comment = Comment(content=content, user_id=current_user.id, post_id=id)
     db.session.add(comment)
-    current_user.add_points(2)  # 评论奖励：+2
+    # 只有审核通过才给评论积分
+    if check['level'] == 'pass':
+        current_user.add_points(2)
     if post.user_id != current_user.id:
         notif = Notification(
             user_id=post.user_id,
