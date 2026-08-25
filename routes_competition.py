@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from extensions import db
 from models import (Competition, Application, Notification,
                     ConversationMessage, TeamGroup, GroupMember, GroupMessage)
+from moderation import moderate_text
 from datetime import datetime
 
 competition_bp = Blueprint('competition', __name__, url_prefix='/competition')
@@ -215,6 +216,12 @@ def send_conversation(id, app_id):
     content = (request.form.get('content') or (request.get_json(silent=True) or {}).get('content', '')).strip()
     if not content:
         return jsonify({'error': '消息内容不能为空'}), 400
+
+    # ====== 消息审核 ======
+    check = moderate_text(content, context_type='chat')
+    if check['reject']:
+        return jsonify({'error': f'消息发送失败：{check["reason"]}'}), 400
+
     msg = ConversationMessage(
         competition_id=comp.id, application_id=app.id,
         sender_id=current_user.id, content=content
@@ -266,6 +273,12 @@ def send_group_message(id):
     content = (request.form.get('content') or (request.get_json(silent=True) or {}).get('content', '')).strip()
     if not content:
         return jsonify({'error': '消息内容不能为空'}), 400
+
+    # ====== 消息审核 ======
+    check = moderate_text(content, context_type='chat')
+    if check['reject']:
+        return jsonify({'error': f'消息发送失败：{check["reason"]}'}), 400
+
     msg = GroupMessage(group_id=group.id, sender_id=current_user.id, content=content)
     db.session.add(msg)
     db.session.commit()

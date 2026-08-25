@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from extensions import db
 from models import Textbook, TextbookMessage, Notification, User, TextbookFavorite
 from forms import validate_title
-from moderation import moderate_text, moderate_image_bytes
+from moderation import moderate_text, moderate_image_bytes, check_upload
 
 textbook_bp = Blueprint('textbook', __name__, url_prefix='/textbook')
 
@@ -211,6 +211,12 @@ def message(id):
         textbook_id=id, sender_id=current_user.id,
         receiver_id=receiver_id, content=content
     )
+
+    # ====== 消息内容审核 ======
+    check = moderate_text(content, context_type='chat')
+    if check['reject']:
+        flash(f'消息发送失败：{check["reason"]}', 'error')
+        return redirect(url_for('textbook.detail', id=id))
     db.session.add(msg)
     if receiver_id != current_user.id:
         notif = Notification(

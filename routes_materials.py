@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from extensions import db
 from models import Material, MaterialReview, Notification, MaterialFavorite
-from moderation import moderate_text
+from moderation import moderate_text, check_upload
 
 materials_bp = Blueprint('materials', __name__, url_prefix='/materials')
 
@@ -148,6 +148,12 @@ def review(id):
 
     if not rating or rating < 1 or rating > 5:
         flash('请给出评分（1-5分）。', 'error')
+        return redirect(url_for('materials.detail', id=id))
+
+    # ====== 评价内容审核 ======
+    check = moderate_text(comment, context_type='comment')
+    if check['reject']:
+        flash(f'评价失败：{check["reason"]}', 'error')
         return redirect(url_for('materials.detail', id=id))
 
     existing = MaterialReview.query.filter_by(
