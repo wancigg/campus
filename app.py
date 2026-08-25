@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """校桥 CampusBridge - 校园资源交换与交流平台"""
 import os
 from flask import Flask, render_template, send_from_directory, request
