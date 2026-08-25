@@ -156,6 +156,7 @@
                             {{ unread_count if unread_count < 99 else '99+' }}
                         </span>
                     </a>
+                    {% if current_user.is_authenticated %}
                     <!-- 用户菜单 -->
                     <div class="relative group">
                         <button class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
