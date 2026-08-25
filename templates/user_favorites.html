@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {% extends 'base.html' %}
+    {% block title %}我的收藏 · 校桥 CampusBridge{% endblock %}
+</head>
+<body>
+{% block content %}
+<section class="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
+    {# ===== 顶部：页面标题 + 面包屑 ===== #}
+    <div class="space-y-2">
+        <div class="text-xs sm:text-sm text-slate-500">
+            <a href="{{ url_for('index') }}" class="hover:text-blue-600">首页</a>
+            <span class="mx-1 text-slate-300">/</span>
+            <span class="text-slate-700 font-medium">我的收藏</span>
+            <span class="mx-1 text-slate-300">·</span>
+            <span class="text-slate-500">共 {{ cnt_posts + cnt_materials + cnt_textbooks }} 项</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            我的收藏中心
+            <span class="ml-2 text-sm font-normal text-slate-400 align-middle">My Favorites</span>
+        </h1>
+        <p class="text-slate-500 text-sm sm:text-base">保存感兴趣的帖子、学习资料和二手闲置，随时回来查看。</p>
+    </div>
+
+    {# ===== 3 张渐变统计卡 ===== #}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        {# 帖子收藏 - 紫粉渐变 #}
+        <a href="{{ url_for('user.favorites', tab='posts') }}"
+           class="group relative overflow-hidden rounded-2xl p-5 sm:p-6 shadow-sm border border-white/50
+                  {% if tab == 'posts' %}ring-2 ring-purple-300{% endif %}
+                  bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 text-white">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="relative flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-9 h-9 rounded-xl bg-white/20 grid place-items-center">📝</span>
+                        <span class="text-white/90 text-xs sm:text-sm font-medium tracking-wide">论坛帖子</span>
+                    </div>
+                    <div class="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight"
+                         data-count="{{ cnt_posts }}">{{ cnt_posts }}</div>
+                    <p class="mt-2 text-white/80 text-xs sm:text-sm">已收藏的帖子</p>
+                </div>
+                <span class="text-2xl group-hover:translate-x-0.5 transition">›</span>
+            </div>
+        </a>
+
+        {# 资料收藏 - 青蓝渐变 #}
+        <a href="{{ url_for('user.favorites', tab='materials') }}"
+           class="group relative overflow-hidden rounded-2xl p-5 sm:p-6 shadow-sm border border-white/50
+                  {% if tab == 'materials' %}ring-2 ring-sky-300{% endif %}
+                  bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-600 text-white">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="relative flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-9 h-9 rounded-xl bg-white/20 grid place-items-center">📚</span>
+                        <span class="text-white/90 text-xs sm:text-sm font-medium tracking-wide">学习资料</span>
+                    </div>
+                    <div class="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight"
+                         data-count="{{ cnt_materials }}">{{ cnt_materials }}</div>
+                    <p class="mt-2 text-white/80 text-xs sm:text-sm">课件、试题、笔记</p>
+                </div>
+                <span class="text-2xl group-hover:translate-x-0.5 transition">›</span>
+            </div>
+        </a>
+
+        {# 二手收藏 - 橙黄渐变 #}
+        <a href="{{ url_for('user.favorites', tab='textbooks') }}"
+           class="group relative overflow-hidden rounded-2xl p-5 sm:p-6 shadow-sm border border-white/50
+                  {% if tab == 'textbooks' %}ring-2 ring-orange-300{% endif %}
+                  bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 text-white">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="relative flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-9 h-9 rounded-xl bg-white/20 grid place-items-center">🛒</span>
+                        <span class="text-white/90 text-xs sm:text-sm font-medium tracking-wide">二手闲置</span>
+                    </div>
+                    <div class="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight"
+                         data-count="{{ cnt_textbooks }}">{{ cnt_textbooks }}</div>
+                    <p class="mt-2 text-white/80 text-xs sm:text-sm">书籍、数码、生活用品</p>
+                </div>
+                <span class="text-2xl group-hover:translate-x-0.5 transition">›</span>
+            </div>
+        </a>
+    </div>
+
+    {# ===== Tab 切换栏 ===== #}
+    <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+        {% set tab_items = [
+            ('posts',     '📝 帖子收藏',   cnt_posts),
+            ('materials', '📚 资料收藏',   cnt_materials),
+            ('textbooks', '🛒 闲置收藏',   cnt_textbooks),
+        ] %}
+        {% for t, label, cnt in tab_items %}
+            <a href="{{ url_for('user.favorites', tab=t) }}"
+               class="px-4 sm:px-5 py-2 rounded-xl text-sm font-medium transition
+                      {% if tab == t %}
+                      bg-white text-slate-900 shadow-sm ring-1 ring-slate-200
+                      {% else %}
+                      text-slate-600 hover:bg-slate-50
+                      {% endif %}">
+                {{ label }}
+                <span class="ml-1.5 px-2 py-0.5 rounded-full text-xs
+                             {% if tab == t %}bg-slate-900 text-white{% else %}bg-slate-200 text-slate-600{% endif %}">
+                    {{ cnt }}
+                </span>
+            </a>
+        {% endfor %}
+    </div>
+
+    {# ===== 收藏列表（卡片瀑布式网格）===== #}
+    {% if not items %}
+        <div class="bg-white rounded-2xl border border-slate-200 py-20 sm:py-28 text-center">
+            <div class="text-6xl mb-4 opacity-60">
+                {% if tab == 'posts' %}📭{% elif tab == 'materials' %}📦{% else %}🧺{% endif %}
+            </div>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">还没有收藏的{% if tab == 'posts' %}帖子{% elif tab == 'materials' %}资料{% else %}闲置物品{% endif %}</h3>
+            <p class="text-slate-500 mb-6 text-sm">去各板块逛逛，发现感兴趣的内容就点「❤ 收藏」吧。</p>
+            <a href="{% if tab == 'posts' %}{{ url_for('forum.index') }}{% elif tab == 'materials' %}{{ url_for('materials.list') }}{% else %}{{ url_for('textbook.list') }}{% endif %}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium shadow-sm hover:shadow-md transition">
+                去逛逛 →
+            </a>
+        </div>
+    {% else %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {% for it in items %}
+                <a href="{{ it.href }}" class="group block bg-white rounded-2xl border border-slate-200 hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden">
+                    {# 二手带封面，就用封面做顶部图；帖子/资料用颜色块 #}
+                    {% if it.kind == 'textbook' and it.cover %}
+                        <div class="aspect-[4/3] bg-slate-100 overflow-hidden relative">
+                            <img src="{{ it.cover }}" alt="{{ it.title }}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-semibold
+                                         {% if it.subtitle and '已售' in it.subtitle %}bg-slate-900/80 text-white
+                                         {% elif it.subtitle and '预留' in it.subtitle %}bg-amber-500/90 text-white
+                                         {% else %}bg-emerald-500/90 text-white{% endif %}">
+                                {% if it.subtitle and '在售' in it.subtitle %}在售
+                                {% elif it.subtitle and '已售' in it.subtitle %}已售
+                                {% elif it.subtitle and '预留' in it.subtitle %}预留
+                                {% else %}详情{% endif %}
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="h-24 sm:h-28 relative flex items-end p-4
+                                    {% if it.kind == 'post' %}bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500
+                                    {% elif it.kind == 'material' %}bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-600{% endif %}">
+                            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur text-white text-[11px] font-semibold tracking-wide">
+                                {% if it.kind == 'post' %}FORUM POST
+                                {% elif it.kind == 'material' %}MATERIAL
+                                {% endif %}
+                            </span>
+                            {# 资料显示文件类型大字 #}
+                            {% if it.kind == 'material' and it.obj %}
+                                {% set ft = (it.obj.file_type or 'FILE')[:4]|upper %}
+                                <span class="absolute right-4 bottom-3 text-white font-black text-4xl sm:text-5xl opacity-90 tracking-tight drop-shadow">{{ ft }}</span>
+                            {% elif it.kind == 'post' %}
+                                <span class="absolute right-4 bottom-3 text-white text-5xl opacity-90">📝</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="p-4 sm:p-5 space-y-2">
+                        {# 标签：类别/价格 #}
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            {% if it.kind == 'textbook' and it.obj and it.obj.price is not none %}
+                                <span class="text-lg font-extrabold text-rose-600">¥{{ it.obj.price|int if it.obj.price == it.obj.price|int else it.obj.price }}</span>
+                                <span class="text-xs text-slate-400 line-through ml-1">
+                                    {% if it.obj.price > 20 %}¥{{ (it.obj.price * 1.3)|int }}{% endif %}
+                                </span>
+                            {% endif %}
+                            <span class="ml-auto text-[11px] text-slate-400">收藏于 {{ it.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+
+                        {# 标题 #}
+                        <h3 class="font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-blue-600 transition">
+                            {{ it.title }}
+                        </h3>
+
+                        {# 副信息 #}
+                        <p class="text-xs sm:text-sm text-slate-500">{{ it.subtitle }}</p>
+
+                        {# 描述 #}
+                        <p class="text-sm text-slate-600 leading-relaxed line-clamp-2 pt-0.5">
+                            {{ it.desc }}
+                        </p>
+
+                        {# 底部：查看按钮 #}
+                        <div class="pt-2 flex items-center justify-between border-t border-slate-100 mt-2">
+                            <span class="text-xs font-medium text-slate-500 group-hover:text-blue-600 transition">
+                                查看详情 →
+                            </span>
+                            {# 快捷取消收藏按钮（AJAX，可选）#}
+                            {% if it.kind == 'post' %}
+                                <form action="{{ url_for('forum.favorite', id=it.id) }}" method="post"
+                                      class="inline-block text-xs text-slate-400 hover:text-rose-500"
+                                      onclick="event.preventDefault();const f=this;fetch(f.action,{method:'POST',headers:{'X-Requested-With':'fetch'}}).then(r=>r.json()).then(d=>{if(d.status==='unfavorited'){f.closest('a').remove();document.querySelectorAll('[data-count]').forEach(e=>{const n=parseInt(e.textContent,10);e.textContent=Math.max(0,n-1);e.dataset.count=e.textContent})})">
+                                    ♡ 取消收藏
+                                </form>
+                            {% elif it.kind == 'material' %}
+                                <form action="{{ url_for('materials.favorite', id=it.id) }}" method="post"
+                                      class="inline-block text-xs text-slate-400 hover:text-rose-500"
+                                      onclick="event.preventDefault();const f=this;fetch(f.action,{method:'POST',headers:{'X-Requested-With':'fetch'}}).then(r=>r.json()).then(d=>{if(d.status==='unfavorited'){f.closest('a').remove();document.querySelectorAll('[data-count]').forEach(e=>{const n=parseInt(e.textContent,10);e.textContent=Math.max(0,n-1);e.dataset.count=e.textContent})})">
+                                    ♡ 取消收藏
+                                </form>
+                            {% elif it.kind == 'textbook' %}
+                                <form action="{{ url_for('textbook.favorite', id=it.id) }}" method="post"
+                                      class="inline-block text-xs text-slate-400 hover:text-rose-500"
+                                      onclick="event.preventDefault();const f=this;fetch(f.action,{method:'POST',headers:{'X-Requested-With':'fetch'}}).then(r=>r.json()).then(d=>{if(d.status==='unfavorited'){f.closest('a').remove();document.querySelectorAll('[data-count]').forEach(e=>{const n=parseInt(e.textContent,10);e.textContent=Math.max(0,n-1);e.dataset.count=e.textContent})})">
+                                    ♡ 取消收藏
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+
+        {# ===== 分页 ===== #}
+        {% if pagination and pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-2 pt-4">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('user.favorites', tab=tab, page=pagination.prev_num) }}"
+                       class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm">
+                        ← 上一页
+                    </a>
+                {% endif %}
+                <span class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-medium">
+                    {{ pagination.page }} / {{ pagination.pages }}
+                </span>
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('user.favorites', tab=tab, page=pagination.next_num) }}"
+                       class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm">
+                        下一页 →
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</section>
+{% endblock %}
+</body>
+</html>

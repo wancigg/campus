@@ -126,6 +126,10 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             二手闲置
                         </a>
+                        <a href="{{ url_for('user.favorites') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-amber-600 hover:bg-amber-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="favorites">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21s-6.716-4.35-9.428-8.081C.95 10.427.95 7.05 3.277 5.068 5.604 3.088 8.607 3.362 10.66 5.23L12 6.4l1.34-1.17C15.393 3.362 18.396 3.088 20.723 5.068 23.05 7.05 23.05 10.427 21.428 12.919 18.716 16.65 12 21 12 21z"/></svg>
+                            我的收藏
+                        </a>
                         <a href="{{ url_for('social.discover') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="social">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                             发现好友

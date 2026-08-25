@@ -5,11 +5,12 @@ import os
 import re
 import uuid
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify, abort
 from flask_login import login_required, current_user
 from extensions import db
 from models import ForumCategory, Post, Comment, PostLike, PostFavorite, PostImage, Notification
 from forms import validate_title, validate_content, allowed_image_file
+from moderation import moderate_text, moderate_image_bytes
 
 try:
     import requests as _requests
@@ -17,6 +18,24 @@ except ImportError:
     _requests = None
 
 forum_bp = Blueprint('forum', __name__, url_prefix='/forum')
+
+
+def _visible_posts_q():
+    """
+    返回可见帖子的 SQLAlchemy 过滤条件：
+    - 已审核通过（is_approved=True）OR
+    - 当前登录用户就是作者 OR
+    - 当前用户是管理员
+    匿名用户：仅能看见已通过（is_approved=True）
+    """
+    from sqlalchemy import or_, and_
+    base = Post.is_approved.is_(True)
+    if not current_user.is_authenticated:
+        return base
+    if current_user.is_admin():
+        return or_(base, Post.is_approved.is_(False))  # 管理员：全部可见
+    # 普通登录用户：可见通过的 + 自己的（不论审核状态）
+    return or_(base, and_(Post.is_approved.is_(False), Post.user_id == current_user.id))
 
 
 @forum_bp.route('/')
@@ -28,23 +47,23 @@ def index():
     categories = ForumCategory.query.order_by(ForumCategory.sort_order).all()
 
     # ===== A方案：顶部统计小卡数据 =====
-    total_posts = Post.query.count()
+    total_posts = Post.query.filter(_visible_posts_q()).count()
     total_comments = Comment.query.count()
     today_start = datetime.utcnow().date()
     today_posts = Post.query.filter(
         db.func.date(Post.created_at) == today_start
-    ).count()
+    ).filter(_visible_posts_q()).count()
     # 热门板块Top3（按帖子数）
     cat_stats = db.session.query(
         ForumCategory, func.count(Post.id)
-    ).outerjoin(Post, Post.category_id == ForumCategory.id
+    ).outerjoin(Post, db.and_(Post.category_id == ForumCategory.id, _visible_posts_q())
     ).group_by(ForumCategory.id).order_by(func.count(Post.id).desc()).limit(3).all()
     hot_categories = [(c, cnt) for c, cnt in cat_stats]
 
     # ===== B方案：知乎式最新帖子信息流（跨板块聚合） =====
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('q', '').strip()
-    q = Post.query
+    q = Post.query.filter(_visible_posts_q())
     if keyword:
         q = q.filter(Post.title.contains(keyword))
     latest_posts_q = q.options(
@@ -69,7 +88,7 @@ def category(cat_id):
     cat = ForumCategory.query.get_or_404(cat_id)
     page = request.args.get('page', 1, type=int)
     keyword = request.args.get('q', '').strip()
-    query = Post.query.filter_by(category_id=cat_id)
+    query = Post.query.filter_by(category_id=cat_id).filter(_visible_posts_q())
     if keyword:
         query = query.filter(Post.title.contains(keyword))
     pagination = query.order_by(Post.is_pinned.desc(), Post.created_at.desc()).paginate(
@@ -82,6 +101,12 @@ def category(cat_id):
 @forum_bp.route('/post/<int:id>')
 def post(id):
     post = Post.query.get_or_404(id)
+    # 非作者非管理员，访问待审核内容 → 403
+    if not post.is_approved:
+        if not current_user.is_authenticated:
+            abort(403)
+        if not (current_user.id == post.user_id or current_user.is_admin()):
+            abort(403)
     post.views += 1
     db.session.commit()
     user_liked = False
@@ -267,10 +292,24 @@ def create():
         if not ok:
             flash(msg, 'error')
             return render_template('forum_edit.html', categories=categories)
+
+        # ====== 内容审核（发帖）======
+        check = moderate_text(f"{title}\n{content}", context_type='forum_post')
+        if check['reject']:
+            # BLOCK：严重违规词，直接拦截，不加库
+            flash(f"发帖失败：{check['reason']}", 'error')
+            return render_template('forum_edit.html', categories=categories)
+
         post = Post(title=title, content=content,
                     user_id=current_user.id, category_id=category_id)
+        if check['level'] == 'warn':
+            # WARN：进人工审核队列
+            post.is_approved = False
+            post.moderation_note = check['reason'][:500]
         db.session.add(post)
-        current_user.add_points(5)  # 发帖奖励：+5
+        # 积分：只有明确通过才给奖励；待审核等管理员通过后补发
+        if check['level'] == 'pass':
+            current_user.add_points(5)  # 发帖奖励：+5
         db.session.flush()  # 获取 post.id
 
         # 处理图片：从隐藏字段获取已上传的图片文件名列表
@@ -284,7 +323,10 @@ def create():
                     ))
 
         db.session.commit()
-        flash('发帖成功！+5 积分 🎉', 'success')
+        if check['level'] == 'warn':
+            flash('发帖已提交，内容正在人工审核中（一般 24 小时内处理），审核通过后发布并奖励积分。', 'warning')
+        else:
+            flash('发帖成功！+5 积分 🎉', 'success')
         return redirect(url_for('forum.post', id=post.id))
     return render_template('forum_edit.html', categories=categories)
 
@@ -298,6 +340,16 @@ def upload_image():
         return jsonify({'error': '请选择图片'}), 400
     if not allowed_image_file(file.filename):
         return jsonify({'error': '仅支持 jpg/jpeg/png/gif/webp 格式'}), 400
+
+    # ====== 图片审核 ======
+    try:
+        blob = file.read()
+        file.seek(0)
+    except Exception:
+        return jsonify({'error': '读取图片失败'}), 400
+    img_check = moderate_image_bytes(blob, filename=file.filename)
+    if img_check['reject']:
+        return jsonify({'error': img_check['reason']}), 400
 
     # 生成唯一文件名
     ext = file.filename.rsplit('.', 1)[1].lower()

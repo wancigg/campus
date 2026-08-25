@@ -1,11 +1,23 @@
 """学习资料路由"""
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_required, current_user
 from extensions import db
-from models import Material, MaterialReview, Notification
+from models import Material, MaterialReview, Notification, MaterialFavorite
+from moderation import moderate_text
 
 materials_bp = Blueprint('materials', __name__, url_prefix='/materials')
+
+
+def _visible_materials_q():
+    """资料可见过滤：已通过 OR 作者本人 OR 管理员"""
+    from sqlalchemy import or_, and_
+    base = Material.is_approved.is_(True)
+    if not current_user.is_authenticated:
+        return base
+    if current_user.is_admin():
+        return or_(base, Material.is_approved.is_(False))
+    return or_(base, and_(Material.is_approved.is_(False), Material.user_id == current_user.id))
 
 
 @materials_bp.route('/')
@@ -17,21 +29,22 @@ def list():
     keyword = request.args.get('q', '').strip()
     category = request.args.get('category', '')
 
+    vf = _visible_materials_q()
     # ===== A方案：顶部统计小卡数据 =====
-    total_materials = Material.query.count()
+    total_materials = Material.query.filter(vf).count()
     total_downloads = db.session.query(
         db.func.coalesce(func.sum(Material.downloads), 0)
-    ).scalar()
+    ).filter(vf).scalar()
     # 本周新增
     week_ago = datetime.utcnow() - timedelta(days=7)
-    week_new = Material.query.filter(Material.created_at >= week_ago).count()
+    week_new = Material.query.filter(Material.created_at >= week_ago).filter(vf).count()
     # 评分Top3（取有评分的，按平均分+评论数排序）
-    all_materials = Material.query.all()
+    all_materials = Material.query.filter(vf).all()
     rated = [(m, m.avg_rating, m.review_count) for m in all_materials if m.avg_rating > 0]
     rated.sort(key=lambda x: (x[1], x[2]), reverse=True)
     top_rated = rated[:3]
 
-    query = Material.query
+    query = Material.query.filter(vf)
     if keyword:
         query = query.filter(Material.title.contains(keyword))
     if category:
@@ -50,6 +63,11 @@ def list():
 @materials_bp.route('/<int:id>')
 def detail(id):
     material = Material.query.get_or_404(id)
+    if not material.is_approved:
+        if not current_user.is_authenticated:
+            abort(403)
+        if not (current_user.id == material.user_id or current_user.is_admin()):
+            abort(403)
     material.views += 1  # 浏览量 +1
     db.session.commit()
     reviews = MaterialReview.query.filter_by(material_id=id)\
@@ -78,6 +96,15 @@ def upload():
             flash('不支持的文件格式。', 'error')
             return render_template('materials_upload.html')
 
+        # ====== 内容审核（资料：标题+描述+原始文件名，不扫文件字节）======
+        check = moderate_text(
+            f"{title}\n{description}\n文件名：{file.filename}",
+            context_type='material_desc',
+        )
+        if check['reject']:
+            flash(f"上传失败：{check['reason']}", 'error')
+            return render_template('materials_upload.html')
+
         from storage import save_file
         file_key = save_file(file, file.filename)
         file_type = get_file_type(file.filename)
@@ -96,12 +123,18 @@ def upload():
             file_name=file.filename,
             file_type=file_type,
             file_size=file_size,
-            user_id=current_user.id
+            user_id=current_user.id,
+            is_approved=(check['level'] == 'pass'),
+            moderation_note=(check['reason'][:500] if check['level'] == 'warn' else ''),
         )
         db.session.add(material)
-        current_user.add_points(5)  # 上传资料奖励：+5
+        if check['level'] == 'pass':
+            current_user.add_points(5)  # 上传资料奖励：+5
         db.session.commit()
-        flash('资料上传成功！+5 积分 📚', 'success')
+        if check['level'] == 'warn':
+            flash('资料已提交，内容正在人工审核中（一般 24 小时内处理），审核通过后展示并奖励积分。', 'warning')
+        else:
+            flash('资料上传成功！+5 积分 📚', 'success')
         return redirect(url_for('materials.detail', id=material.id))
     return render_template('materials_upload.html')
 
@@ -155,7 +188,24 @@ def delete(id):
     if material.file_key:
         delete_file(material.file_key)
     MaterialReview.query.filter_by(material_id=id).delete()
+    MaterialFavorite.query.filter_by(material_id=id).delete()
     db.session.delete(material)
     db.session.commit()
     flash('资料已删除。', 'success')
     return redirect(url_for('materials.list'))
+
+
+@materials_bp.route('/<int:id>/favorite', methods=['POST'])
+@login_required
+def favorite(id):
+    """资料收藏/取消收藏（AJAX）"""
+    material = Material.query.get_or_404(id)
+    existing = MaterialFavorite.query.filter_by(material_id=id, user_id=current_user.id).first()
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({'status': 'unfavorited'})
+    fav = MaterialFavorite(material_id=id, user_id=current_user.id)
+    db.session.add(fav)
+    db.session.commit()
+    return jsonify({'status': 'favorited'})

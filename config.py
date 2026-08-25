@@ -53,5 +53,8 @@ class Config:
     COS_REGION = os.getenv('COS_REGION', 'ap-guangzhou')
     COS_BUCKET = os.getenv('COS_BUCKET', '')
 
+    # DeepSeek AI（可选，用于论坛摘要 + 内容深度审核；不填自动降级为仅本地审核词）
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
+
     # 分页
     ITEMS_PER_PAGE = 12

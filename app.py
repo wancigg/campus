@@ -26,6 +26,7 @@ def create_app():
     from routes_admin import admin_bp
     from routes_social import social_bp
     from routes_chat import chat_bp
+    from routes_user import user_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(materials_bp)
@@ -36,6 +37,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(social_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(user_bp)
 
     # 用户加载器
     @login_manager.user_loader
@@ -300,6 +302,47 @@ p{color:#64748b;margin:0 0 24px}a{display:inline-block;padding:12px 28px;backgro
         ]:
             try:
                 db.session.execute(text(f"ALTER TABLE chat_group_messages ADD COLUMN {_col} {_type}"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        # ===== 2026-08-25 新增：内容审核列（posts/materials/textbooks）=====
+        for _tbl in ('posts', 'materials', 'textbooks'):
+            for _col, _type in [
+                ('is_approved', "BOOLEAN DEFAULT 1"),
+                ('moderation_note', "VARCHAR(500) DEFAULT ''"),
+            ]:
+                try:
+                    db.session.execute(text(f"ALTER TABLE {_tbl} ADD COLUMN {_col} {_type}"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+        # ===== 2026-08-25 新增：收藏新表（material_favorites / textbook_favorites）=====
+        for create_sql in [
+            """
+            CREATE TABLE IF NOT EXISTS material_favorites (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                material_id INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(material_id) REFERENCES materials(id),
+                UNIQUE(user_id, material_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS textbook_favorites (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                textbook_id INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(textbook_id) REFERENCES textbooks(id),
+                UNIQUE(user_id, textbook_id)
+            )
+            """,
+        ]:
+            try:
+                db.session.execute(text(create_sql))
                 db.session.commit()
             except Exception:
                 db.session.rollback()

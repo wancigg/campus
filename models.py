@@ -29,6 +29,13 @@ class User(UserMixin, db.Model):
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
     competitions = db.relationship('Competition', backref='owner', lazy='dynamic')
     textbooks = db.relationship('Textbook', backref='owner', lazy='dynamic')
+    # 三大类收藏
+    post_favorites_rel = db.relationship('PostFavorite', backref='user', lazy='dynamic',
+                                          cascade='all, delete-orphan')
+    material_favorites_rel = db.relationship('MaterialFavorite', backref='user', lazy='dynamic',
+                                              cascade='all, delete-orphan')
+    textbook_favorites_rel = db.relationship('TextbookFavorite', backref='user', lazy='dynamic',
+                                              cascade='all, delete-orphan')
 
     # 等级阶梯：(最低积分, 等级名, 徽章颜色类)
     LEVEL_TABLE = [
@@ -187,6 +194,10 @@ class Post(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('forum_categories.id'), nullable=False)
     views = db.Column(db.Integer, default=0)
     is_pinned = db.Column(db.Boolean, default=False)
+    # 内容审核：True=已发布（默认老数据过审）；False=进管理员审核队列
+    is_approved = db.Column(db.Boolean, default=True)
+    # 审核备注（违规原因、AI命中词等，用于管理员驳回时说明）
+    moderation_note = db.Column(db.String(500), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -254,6 +265,30 @@ class PostFavorite(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='uq_user_post_favorite'),)
 
 
+class MaterialFavorite(db.Model):
+    """学习资料收藏"""
+    __tablename__ = 'material_favorites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'material_id', name='uq_user_material_favorite'),)
+
+
+class TextbookFavorite(db.Model):
+    """二手闲置收藏"""
+    __tablename__ = 'textbook_favorites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    textbook_id = db.Column(db.Integer, db.ForeignKey('textbooks.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'textbook_id', name='uq_user_textbook_favorite'),)
+
+
 class Material(db.Model):
     """学习资料"""
     __tablename__ = 'materials'
@@ -269,10 +304,15 @@ class Material(db.Model):
     views = db.Column(db.Integer, default=0)       # 浏览量（页面访问次数）
     downloads = db.Column(db.Integer, default=0)   # 下载量（实际下载次数）
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # 内容审核
+    is_approved = db.Column(db.Boolean, default=True)
+    moderation_note = db.Column(db.String(500), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     reviews = db.relationship('MaterialReview', backref='material', lazy='dynamic',
                               cascade='all, delete-orphan')
+    favorites = db.relationship('MaterialFavorite', backref='material', lazy='dynamic',
+                                cascade='all, delete-orphan')
 
     @property
     def avg_rating(self):
@@ -454,10 +494,15 @@ class Textbook(db.Model):
     description_images = db.Column(db.Text)  # 描述图 storage keys（多张，逗号分隔）
     trade_status = db.Column(db.String(20), default='available')  # available/reserved/sold
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # 内容审核
+    is_approved = db.Column(db.Boolean, default=True)
+    moderation_note = db.Column(db.String(500), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     messages = db.relationship('TextbookMessage', backref='textbook', lazy='dynamic',
                                cascade='all, delete-orphan')
+    favorites = db.relationship('TextbookFavorite', backref='textbook', lazy='dynamic',
+                                cascade='all, delete-orphan')
 
 
 class TextbookMessage(db.Model):
