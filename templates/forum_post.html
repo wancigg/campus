@@ -24,7 +24,7 @@
         </div>
 
         <!-- 帖子图片 -->
-        {% if post.images.count() > 0 %}
+        {% if post.images|length > 0 %}
         <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
             {% for img in post.images %}
             <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 cursor-pointer group" onclick="openPreview('/uploads/{{ img.filename }}')">
