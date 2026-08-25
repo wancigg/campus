@@ -110,9 +110,16 @@
                                 <div class="w-7 h-7 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold">{{ r.reviewer.username[0].upper() }}</div>
                                 <span class="text-sm font-medium text-gray-700">{{ r.reviewer.username }}</span>
                             </div>
-                            <div class="flex text-yellow-400 text-sm">
-                                {% for _ in range(r.rating) %}★{% endfor %}
-                                {% for _ in range(5 - r.rating) %}<span class="text-gray-200">★</span>{% endfor %}
+                            <div class="flex items-center gap-2">
+                                <div class="flex text-yellow-400 text-sm">
+                                    {% for _ in range(r.rating) %}★{% endfor %}
+                                    {% for _ in range(5 - r.rating) %}<span class="text-gray-200">★</span>{% endfor %}
+                                </div>
+                                {% if current_user.is_authenticated and r.user_id == current_user.id %}
+                                <form method="POST" action="{{ url_for('materials.delete_review', review_id=r.id) }}" onsubmit="return confirm('确定删除该评价？');">
+                                    <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition-colors">删除</button>
+                                </form>
+                                {% endif %}
                             </div>
                         </div>
                         {% if r.comment %}

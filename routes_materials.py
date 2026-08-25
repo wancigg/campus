@@ -183,6 +183,20 @@ def review(id):
     return redirect(url_for('materials.detail', id=id))
 
 
+@materials_bp.route('/review/<int:review_id>/delete', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    review = MaterialReview.query.get_or_404(review_id)
+    material_id = review.material_id
+    if review.user_id != current_user.id:
+        flash('只有评价者本人可以删除评价。', 'error')
+        return redirect(url_for('materials.detail', id=material_id))
+    db.session.delete(review)
+    db.session.commit()
+    flash('评价已删除。', 'success')
+    return redirect(url_for('materials.detail', id=material_id))
+
+
 @materials_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
 def delete(id):

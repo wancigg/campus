@@ -96,7 +96,14 @@
                     <div class="p-3 rounded-xl {% if msg.sender_id == current_user.id %}bg-blue-50 ml-4{% else %}bg-gray-50 mr-4{% endif %}">
                         <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
                             <span class="font-medium text-gray-600">{{ msg.sender.username }}</span>
-                            <span>{{ msg.created_at.strftime('%m-%d %H:%M') }}</span>
+                            <span class="flex items-center gap-2">
+                                {{ msg.created_at.strftime('%m-%d %H:%M') }}
+                                {% if current_user.is_authenticated and msg.sender_id == current_user.id %}
+                                <form method="POST" action="{{ url_for('textbook.delete_message', msg_id=msg.id) }}" onsubmit="return confirm('确定删除该消息？');">
+                                    <button type="submit" class="text-red-400 hover:text-red-600 transition-colors">删除</button>
+                                </form>
+                                {% endif %}
+                            </span>
                         </div>
                         <p class="text-sm text-gray-700">{{ msg.content }}</p>
                     </div>

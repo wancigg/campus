@@ -232,6 +232,20 @@ def message(id):
     return redirect(url_for('textbook.detail', id=id))
 
 
+@textbook_bp.route('/message/<int:msg_id>/delete', methods=['POST'])
+@login_required
+def delete_message(msg_id):
+    msg = TextbookMessage.query.get_or_404(msg_id)
+    textbook_id = msg.textbook_id
+    if msg.sender_id != current_user.id:
+        flash('只有发送者本人可以删除消息。', 'error')
+        return redirect(url_for('textbook.detail', id=textbook_id))
+    db.session.delete(msg)
+    db.session.commit()
+    flash('消息已删除。', 'success')
+    return redirect(url_for('textbook.detail', id=textbook_id))
+
+
 @textbook_bp.route('/<int:id>/status/<status>', methods=['POST'])
 @login_required
 def change_status(id, status):
