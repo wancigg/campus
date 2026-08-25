@@ -71,9 +71,16 @@
             <div class="flex space-x-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0 content-item">
                 <div class="w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{ c.author.username[0].upper() }}</div>
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-gray-700">{{ c.author.username }}</span>
-                        <span class="text-xs text-gray-400">{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-gray-700">{{ c.author.username }}</span>
+                            <span class="text-xs text-gray-400">{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        {% if current_user.is_authenticated and (c.user_id == current_user.id or current_user.is_admin()) %}
+                        <form method="POST" action="{{ url_for('forum.delete_comment', comment_id=c.id) }}" onsubmit="return confirm('确定删除该评论？');">
+                            <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition-colors">删除</button>
+                        </form>
+                        {% endif %}
                     </div>
                     <p class="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{{ c.content }}</p>
                 </div>

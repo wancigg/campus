@@ -155,6 +155,20 @@ def comment(id):
     return redirect(url_for('forum.post', id=id))
 
 
+@forum_bp.route('/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    post_id = comment.post_id
+    if comment.user_id != current_user.id and not current_user.is_admin():
+        flash('只有本人或管理员可以删除评论。', 'error')
+        return redirect(url_for('forum.post', id=post_id))
+    db.session.delete(comment)
+    db.session.commit()
+    flash('评论已删除。', 'success')
+    return redirect(url_for('forum.post', id=post_id))
+
+
 @forum_bp.route('/post/<int:id>/like', methods=['POST'])
 @login_required
 def like(id):
