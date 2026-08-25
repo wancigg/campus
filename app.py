@@ -351,6 +351,9 @@ p{color:#64748b;margin:0 0 24px}a{display:inline-block;padding:12px 28px;backgro
     return app
 
 
+app = create_app()
+
+
 if __name__ == '__main__':
     app = create_app()
     with app.app_context():
