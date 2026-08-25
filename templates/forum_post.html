@@ -20,7 +20,7 @@
             </div>
             <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }}</span>
             <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>{{ post.views }}</span>
-            <span>{{ post.comment_count }} 回复</span>
+            <span>{{ comments|length }} 回复</span>
         </div>
 
         <!-- 帖子图片 -->
@@ -58,7 +58,7 @@
 
     <!-- 回复区 -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" data-animate="fade-up" data-animate-delay="100">
-        <h2 class="text-lg font-bold text-gray-900 mb-4">回复 ({{ post.comment_count }})</h2>
+        <h2 class="text-lg font-bold text-gray-900 mb-4">回复 ({{ comments|length }})</h2>
         {% if current_user.is_authenticated %}
         <form method="POST" action="{{ url_for('forum.comment', id=post.id) }}" class="mb-6">
             <textarea name="content" rows="3" required placeholder="写下你的回复..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm transition-all duration-200"></textarea>
@@ -67,7 +67,7 @@
         {% endif %}
 
         <div class="space-y-4">
-            {% for c in post.comments.all() %}
+            {% for c in comments %}
             <div class="flex space-x-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0 content-item">
                 <div class="w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{ c.author.username[0].upper() if c.author else 'U' }}</div>
                 <div class="flex-1 min-w-0">

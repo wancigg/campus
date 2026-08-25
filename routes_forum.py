@@ -100,11 +100,7 @@ def category(cat_id):
 
 @forum_bp.route('/post/<int:id>')
 def post(id):
-    from sqlalchemy.orm import joinedload
-    post = Post.query.options(
-        joinedload(Post.author),
-        joinedload(Post.comments).joinedload(Comment.author)
-    ).get_or_404(id)
+    post = Post.query.get_or_404(id)
     # 非作者非管理员，访问待审核内容 → 403
     if not post.is_approved:
         if not current_user.is_authenticated:
@@ -113,6 +109,11 @@ def post(id):
             abort(403)
     post.views += 1
     db.session.commit()
+    # 直接查询评论列表（避免 lazy='dynamic' 问题）
+    comments = Comment.query.filter_by(post_id=id).order_by(Comment.created_at).all()
+    # 预加载评论作者
+    for c in comments:
+        _ = c.author  # 触发关系加载
     user_liked = False
     user_favorited = False
     if current_user.is_authenticated:
@@ -121,6 +122,7 @@ def post(id):
         user_favorited = PostFavorite.query.filter_by(
             post_id=id, user_id=current_user.id).first() is not None
     return render_template('forum_post.html', post=post,
+                           comments=comments,
                            user_liked=user_liked, user_favorited=user_favorited)
 
 
