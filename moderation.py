@@ -13,7 +13,7 @@
 import os
 import hashlib
 import re
-from typing import Literal
+from typing import Literal, Optional
 
 # ===== 本地违规词表（兜底；可按需扩充） =====
 # 分类（block=直接拦截，warn=进审核队列）
@@ -62,7 +62,7 @@ def _keyword_scan(text: str) -> tuple[str, list[str]]:
     return 'pass', []
 
 
-def _deepseek_ai_moderate(text: str, api_key: str | None, context_type: str) -> tuple[str, str, list[str]]:
+def _deepseek_ai_moderate(text: str, api_key: Optional[str], context_type: str) -> tuple[str, str, list[str]]:
     """调用 DeepSeek 做 AI 文本审核，返回 (level, reason, tags)。失败降级 PASS。"""
     if not api_key or not text:
         return 'pass', '', []
