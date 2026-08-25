@@ -79,100 +79,98 @@
     <!-- 导航栏 -->
     <nav class="bg-white/70 backdrop-blur-xl border-b border-blue-100/30 sticky top-0 z-50 shadow-sm transition-shadow duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center h-16">
+            <div class="flex items-center h-14">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0">
                     <a href="{{ url_for('index') }}" class="flex items-center space-x-2 group">
-                        <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
                             </svg>
                         </div>
                         <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">校桥</span>
-                        <span class="hidden sm:inline text-sm text-gray-400 font-medium">CampusBridge</span>
+                        <span class="hidden lg:inline text-sm text-gray-400 font-medium">CampusBridge</span>
                     </a>
                 </div>
 
                 <!-- 中间：搜索框 + 导航链接 -->
-                <div class="hidden md:flex flex-1 items-center justify-center gap-4 px-4 min-w-0">
+                <div class="hidden md:flex flex-1 items-center justify-center gap-2 px-2 min-w-0">
                     <!-- 搜索框 -->
                     <form action="{{ url_for('search') }}" method="GET" class="hidden lg:flex items-center relative flex-shrink-0">
-                        <input type="text" name="q" placeholder="搜索帖子、资料、闲置…" value="{{ request.args.get('q', '') if request.endpoint == 'search' else '' }}"
-                            class="w-48 h-9 pl-9 pr-14 rounded-xl border border-gray-200/80 bg-gray-50/80 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all duration-200 shadow-sm">
-                        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <input type="text" name="q" placeholder="搜索…" value="{{ request.args.get('q', '') if request.endpoint == 'search' else '' }}"
+                            class="w-36 h-7 pl-7 pr-10 rounded-lg border border-gray-200/80 bg-gray-50/80 focus:bg-white focus:border-blue-400 text-xs text-gray-700 placeholder-gray-400 outline-none transition-all duration-200 shadow-sm">
+                        <svg class="w-3 h-3 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 px-2.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg hover:shadow-md transition-all">
-                            搜索
-                        </button>
+                        <button type="submit" class="absolute right-0.5 top-1/2 -translate-y-1/2 px-1.5 py-1 text-[10px] font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-md hover:shadow-md transition-all">搜索</button>
                         <input type="hidden" name="type" value="all">
                     </form>
 
                     <!-- 导航链接 -->
-                    <div class="flex items-center space-x-0.5 min-w-0">
-                        <a href="{{ url_for('index') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="home">
+                    <div class="flex items-center space-x-0 min-w-0">
+                        <a href="{{ url_for('index') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1" data-nav="home">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
-                            首页
+                            <span class="hidden lg:inline">首页</span>
                         </a>
-                        <a href="{{ url_for('materials.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="materials">
+                        <a href="{{ url_for('materials.list') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 flex items-center gap-1" data-nav="materials">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                            学习资料
+                            <span class="hidden lg:inline">学习资料</span>
                         </a>
-                        <a href="{{ url_for('forum.index') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="forum">
+                        <a href="{{ url_for('forum.index') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50/80 transition-all duration-200 flex items-center gap-1" data-nav="forum">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                            校园论坛
+                            <span class="hidden lg:inline">校园论坛</span>
                         </a>
-                        <a href="{{ url_for('competition.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-orange-600 hover:bg-orange-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="competition">
+                        <a href="{{ url_for('competition.list') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-orange-600 hover:bg-orange-50/80 transition-all duration-200 flex items-center gap-1" data-nav="competition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            竞赛组队
+                            <span class="hidden lg:inline">竞赛组队</span>
                         </a>
-                        <a href="{{ url_for('textbook.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="textbook">
+                        <a href="{{ url_for('textbook.list') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50/80 transition-all duration-200 flex items-center gap-1" data-nav="textbook">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                            二手闲置
+                            <span class="hidden lg:inline">二手闲置</span>
                         </a>
-                        <a href="{{ url_for('user.favorites') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-amber-600 hover:bg-amber-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="favorites">
+                        <a href="{{ url_for('user.favorites') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-amber-600 hover:bg-amber-50/80 transition-all duration-200 flex items-center gap-1" data-nav="favorites">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21s-6.716-4.35-9.428-8.081C.95 10.427.95 7.05 3.277 5.068 5.604 3.088 8.607 3.362 10.66 5.23L12 6.4l1.34-1.17C15.393 3.362 18.396 3.088 20.723 5.068 23.05 7.05 23.05 10.427 21.428 12.919 18.716 16.65 12 21 12 21z"/></svg>
-                            我的收藏
+                            <span class="hidden lg:inline">我的收藏</span>
                         </a>
-                        <a href="{{ url_for('social.discover') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="social">
+                        <a href="{{ url_for('social.discover') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50/80 transition-all duration-200 flex items-center gap-1" data-nav="social">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                            发现好友
+                            <span class="hidden lg:inline">发现好友</span>
                         </a>
-                        <a href="{{ url_for('chat.list') }}" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/80 transition-all duration-200 flex items-center gap-1.5" data-nav="chat">
+                        <a href="{{ url_for('chat.list') }}" class="nav-link px-2 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/80 transition-all duration-200 flex items-center gap-1" data-nav="chat">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"/></svg>
-                            聊天
+                            <span class="hidden lg:inline">聊天</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- 右侧操作：通知 + 用户 -->
-                <div class="flex items-center space-x-3 flex-shrink-0">
+                <div class="flex items-center space-x-1 flex-shrink-0">
                     <!-- 通知铃铛 -->
-                    <a href="{{ url_for('message.list') }}" class="relative p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" id="notification-bell">
+                    <a href="{{ url_for('message.list') }}" class="relative p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200" id="notification-bell">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span id="unread-badge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-sm {% if unread_count == 0 %}hidden{% endif %} transition-all duration-300">
+                        <span id="unread-badge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center font-bold shadow-sm {% if unread_count == 0 %}hidden{% endif %} transition-all duration-300">
                             {{ unread_count if unread_count < 99 else '99+' }}
                         </span>
                     </a>
                     {% if current_user.is_authenticated %}
                     <!-- 用户菜单 -->
                     <div class="relative group">
-                        <button class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                        <button class="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-gray-100 transition-all duration-200">
                             {% if current_user.avatar %}
-                            <img src="{{ url_for('uploaded_file', key=current_user.avatar) }}" alt="{{ current_user.username }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            <img src="{{ url_for('uploaded_file', key=current_user.avatar) }}" alt="{{ current_user.username }}" class="w-7 h-7 rounded-full object-cover shadow-sm">
                             {% else %}
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                            <div class="w-7 h-7 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                 {{ current_user.username[0].upper() }}
                             </div>
                             {% endif %}
-                            <span class="hidden sm:block text-sm font-medium text-gray-700">{{ current_user.username }}</span>
+                            <span class="hidden lg:block text-sm font-medium text-gray-700">{{ current_user.username }}</span>
                             {% set lvl = current_user.get_level_info() %}
-                            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ lvl.color_class }} ml-1">
+                            <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border {{ lvl.color_class }}">
                                 Lv{{ lvl.level }}
                             </span>
-                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="hidden lg:block w-4 h-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
