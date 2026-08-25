@@ -100,7 +100,11 @@ def category(cat_id):
 
 @forum_bp.route('/post/<int:id>')
 def post(id):
-    post = Post.query.get_or_404(id)
+    from sqlalchemy.orm import joinedload
+    post = Post.query.options(
+        joinedload(Post.author),
+        joinedload(Post.comments).joinedload(Comment.author)
+    ).get_or_404(id)
     # 非作者非管理员，访问待审核内容 → 403
     if not post.is_approved:
         if not current_user.is_authenticated:
