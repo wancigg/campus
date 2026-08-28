@@ -35,10 +35,19 @@ def validate_title(title):
     return True, ''
 
 
-def validate_content(content):
-    """校验内容"""
-    if not content or len(content.strip()) < 2:
+def validate_content(content, allow_empty=False):
+    """校验内容
+    allow_empty=True 时：允许空，也允许 1 字（发帖正文可随便填）
+    allow_empty=False 时：非空且长度>=2（评论等强制正文场景）
+    """
+    if not content or not content.strip():
+        if allow_empty:
+            return True, ''
         return False, '内容至少需要 2 个字符'
+    if not allow_empty and len(content.strip()) < 2:
+        return False, '内容至少需要 2 个字符'
+    if len(content) > 20000:
+        return False, '内容不能超过 20000 个字符'
     return True, ''
 
 

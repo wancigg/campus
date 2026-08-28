@@ -313,21 +313,35 @@ def create():
         title = request.form.get('title', '').strip()
         category_id = request.form.get('category_id', type=int)
         content = request.form.get('content', '').strip()
+        images_raw = request.form.get('images', '').strip()
+
+        def _rerender():
+            return render_template('forum_edit.html',
+                                   categories=categories,
+                                   title=title,
+                                   content=content,
+                                   category_id=category_id,
+                                   images=images_raw)
+
         ok, msg = validate_title(title)
         if not ok:
             flash(msg, 'error')
-            return render_template('forum_edit.html', categories=categories)
-        ok, msg = validate_content(content)
+            return _rerender()
+        ok, msg = validate_content(content, allow_empty=True)
         if not ok:
             flash(msg, 'error')
-            return render_template('forum_edit.html', categories=categories)
+            return _rerender()
+        # 正文和图片同时为空 → 也不能发（至少得有标题+图片或标题+正文）
+        if not content and not images_raw:
+            flash('正文和图片不能同时为空，至少填一项', 'error')
+            return _rerender()
 
         # ====== 内容审核（发帖）======
         check = moderate_text(f"{title}\n{content}", context_type='forum_post')
         if check['reject']:
             # BLOCK：严重违规词，直接拦截，不加库
             flash(f"发帖失败：{check['reason']}", 'error')
-            return render_template('forum_edit.html', categories=categories)
+            return _rerender()
 
         post = Post(title=title, content=content,
                     user_id=current_user.id, category_id=category_id)
@@ -342,9 +356,8 @@ def create():
         db.session.flush()  # 获取 post.id
 
         # 处理图片：从隐藏字段获取已上传的图片文件名列表
-        image_filenames = request.form.get('images', '').strip()
-        if image_filenames:
-            for i, filename in enumerate(image_filenames.split(',')):
+        if images_raw:
+            for i, filename in enumerate(images_raw.split(',')):
                 filename = filename.strip()
                 if filename:
                     db.session.add(PostImage(
