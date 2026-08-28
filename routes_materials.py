@@ -130,10 +130,26 @@ def upload():
         db.session.add(material)
         if check['level'] == 'pass':
             current_user.add_points(5)  # 上传资料奖励：+5
-        db.session.commit()
+        db.session.flush()  # 确保 material.id 在发送通知前可用
         if check['level'] == 'warn':
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='🧐 资料已提交审核',
+                content=f'你上传的资料《{material.title}》正在人工审核中，审核通过后会正式展示并发放积分奖励。',
+                link=url_for('materials.detail', id=material.id)
+            ))
+            db.session.commit()
             flash('资料已提交，内容正在人工审核中（一般 24 小时内处理），审核通过后展示并奖励积分。', 'warning')
         else:
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='📚 资料上传成功',
+                content=f'你上传的资料《{material.title}》已成功上线，获得 +5 积分奖励。',
+                link=url_for('materials.detail', id=material.id)
+            ))
+            db.session.commit()
             flash('资料上传成功！+5 积分 📚', 'success')
         return redirect(url_for('materials.detail', id=material.id))
     return render_template('materials_upload.html')

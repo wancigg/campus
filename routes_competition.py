@@ -123,6 +123,14 @@ def create():
         )
         db.session.add(comp)
         current_user.add_points(3)  # 发布招募奖励：+3
+        db.session.flush()  # 确保 comp.id 在发送通知前可用
+        db.session.add(Notification(
+            user_id=current_user.id,
+            type='system',
+            title='🏆 竞赛招募发布成功',
+            content=f'你发布的招募《{title}》已成功上线，获得 +3 积分奖励，开始寻找你的队友吧。',
+            link=url_for('competition.detail', id=comp.id)
+        ))
         db.session.commit()
         flash('招募发布成功！+3 积分 🏆', 'success')
         return redirect(url_for('competition.detail', id=comp.id))

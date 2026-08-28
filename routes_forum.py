@@ -364,10 +364,26 @@ def create():
                         post_id=post.id, filename=filename, sort_order=i
                     ))
 
-        db.session.commit()
+        db.session.flush()  # 确保 post.id 在发送通知前可用
         if check['level'] == 'warn':
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='🧐 帖子已提交审核',
+                content=f'你发布的帖子《{post.title}》正在人工审核中，审核通过后会正式展示并发放积分奖励。',
+                link=url_for('forum.post', id=post.id)
+            ))
+            db.session.commit()
             flash('发帖已提交，内容正在人工审核中（一般 24 小时内处理），审核通过后发布并奖励积分。', 'warning')
         else:
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='🎉 帖子发布成功',
+                content=f'你发布的帖子《{post.title}》已成功上线，获得 +5 积分奖励。',
+                link=url_for('forum.post', id=post.id)
+            ))
+            db.session.commit()
             flash('发帖成功！+5 积分 🎉', 'success')
         return redirect(url_for('forum.post', id=post.id))
     return render_template('forum_edit.html', categories=categories)

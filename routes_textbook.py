@@ -176,10 +176,26 @@ def create():
         db.session.add(textbook)
         if check['level'] == 'pass':
             current_user.add_points(3)  # 发布闲置奖励：+3
-        db.session.commit()
+        db.session.flush()  # 确保 textbook.id 在发送通知前可用
         if check['level'] == 'warn':
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='🧐 闲置已提交审核',
+                content=f'你发布的闲置《{title}》正在人工审核中，审核通过后会正式展示并发放积分奖励。',
+                link=url_for('textbook.detail', id=textbook.id)
+            ))
+            db.session.commit()
             flash('闲置已提交，内容正在人工审核中（一般 24 小时内处理），审核通过后展示并奖励积分。', 'warning')
         else:
+            db.session.add(Notification(
+                user_id=current_user.id,
+                type='system',
+                title='🛒 闲置发布成功',
+                content=f'你发布的闲置《{title}》已成功上线，获得 +3 积分奖励。',
+                link=url_for('textbook.detail', id=textbook.id)
+            ))
+            db.session.commit()
             flash('闲置物品发布成功！+3 积分 🛒', 'success')
         return redirect(url_for('textbook.detail', id=textbook.id))
     return render_template('textbook_edit.html', categories=CATEGORIES)
