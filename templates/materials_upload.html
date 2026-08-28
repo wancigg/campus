@@ -29,12 +29,13 @@
                 <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer" id="drop-zone">
                     <svg class="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                     <p class="mt-3 text-sm text-gray-500">拖拽文件到这里，或 <span class="text-blue-600">点击选择</span></p>
-                    <p class="text-xs text-gray-400 mt-1">支持 PDF、Word、PPT、图片、压缩包等格式</p>
+                    <p class="text-xs text-gray-400 mt-1">支持 PDF、Word、PPT、图片、压缩包等格式，单文件最大 <span class="font-semibold text-gray-500">50 MB</span></p>
                     <input type="file" name="file" required class="hidden" id="file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp,.zip,.rar">
                     <p class="mt-2 text-sm text-gray-600 font-medium hidden" id="file-name"></p>
+                    <p class="mt-2 text-xs text-red-500 hidden" id="file-error"></p>
                 </div>
             </div>
-            <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300">上传资料</button>
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300" id="submit-btn">上传资料</button>
         </form>
     </div>
 </div>
@@ -42,13 +43,77 @@
 
 {% block scripts %}
 <script>
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
-const fileName = document.getElementById('file-name');
-dropZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', () => { if(fileInput.files[0]){ fileName.textContent = '已选择: ' + fileInput.files[0].name; fileName.classList.remove('hidden'); } });
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-blue-400'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-400'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('border-blue-400'); if(e.dataTransfer.files[0]){ fileInput.files = e.dataTransfer.files; fileName.textContent = '已选择: ' + e.dataTransfer.files[0].name; fileName.classList.remove('hidden'); } });
+(function(){
+    const MAX_MB = 50;
+    const MAX_BYTES = MAX_MB * 1024 * 1024;
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileName = document.getElementById('file-name');
+    const fileError = document.getElementById('file-error');
+    const submitBtn = document.getElementById('submit-btn');
+    const form = document.querySelector('form');
+
+    function setError(msg) {
+        if (msg) {
+            fileError.textContent = msg;
+            fileError.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        } else {
+            fileError.textContent = '';
+            fileError.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
+    function validateFile(file) {
+        if (!file) { setError(''); return false; }
+        if (file.size > MAX_BYTES) {
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+            setError(`文件过大：当前 ${sizeMb} MB，超出最大限制 ${MAX_MB} MB`);
+            return false;
+        }
+        setError('');
+        return true;
+    }
+
+    function onFile(file) {
+        if (!validateFile(file)) {
+            fileName.classList.add('hidden');
+            fileName.textContent = '';
+            if (file) fileName.textContent = '已选择: ' + file.name + '（超限，无法上传）';
+            return;
+        }
+        fileName.textContent = '已选择: ' + file.name + ' (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB)';
+        fileName.classList.remove('hidden');
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => onFile(fileInput.files[0]));
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-blue-400'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-blue-400'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400');
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+            const dt = new DataTransfer();
+            dt.items.add(f);
+            fileInput.files = dt.files;
+            onFile(f);
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        const f = fileInput.files[0];
+        if (!validateFile(f)) {
+            e.preventDefault();
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = '上传中...';
+    });
+})();
 </script>
 {% endblock %}

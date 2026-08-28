@@ -31,7 +31,7 @@
                     <input type="file" id="fileInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFiles(this.files)">
                     <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <p class="mt-2 text-sm text-gray-500">点击或拖拽图片到此处上传</p>
-                    <p class="text-xs text-gray-400 mt-1">支持 JPG、PNG、GIF、WebP，单张不超过 10MB</p>
+                    <p class="text-xs text-gray-400 mt-1">支持 JPG、PNG、GIF、WebP，单张不超过 10MB，整次请求最大 50MB</p>
                 </div>
                 <p id="uploadStatus" class="text-xs mt-1 hidden"></p>
             </div>
@@ -104,7 +104,17 @@ function uploadFile(file) {
     fetch('/forum/upload-image', {
         method: 'POST',
         body: formData
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 413) {
+            return Promise.resolve({ ok: false, error: '请求超过总大小限制（整次请求最大 50 MB）' });
+        }
+        if (!r.ok) {
+            return r.text().then(function(t) {
+                try { var j = JSON.parse(t); return j; } catch(e) { return { ok: false, error: '上传失败（' + r.status + '）' }; }
+            }).catch(function() { return { ok: false, error: '上传失败（' + r.status + '）' }; });
+        }
+        return r.json();
+    }).then(function(data) {
         if (data.ok) {
             uploadedFiles.push({filename: data.filename});
             renderPreviews();

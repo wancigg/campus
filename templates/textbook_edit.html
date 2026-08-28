@@ -49,7 +49,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1.5">封面图片 <span class="text-red-400">*</span></label>
-                <p class="text-xs text-gray-400 mb-2">物品的主展示图，只可上传一张。在列表和详情页顶部显示。</p>
+                <p class="text-xs text-gray-400 mb-2">物品的主展示图，只可上传一张。单张图片最大 50MB。</p>
                 <div class="flex items-start gap-4">
                     <label class="flex-shrink-0 w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-colors group" id="cover-label">
                         <div class="text-center">
@@ -63,12 +63,13 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1.5">描述图片 <span class="text-gray-400 font-normal">（可选，最多 9 张）</span></label>
-                <p class="text-xs text-gray-400 mb-2">展示物品细节、瑕疵、配件等，可一次选择多张。</p>
+                <p class="text-xs text-gray-400 mb-2">展示物品细节、瑕疵、配件等，可一次选择多张。整次请求最大 50MB。</p>
                 <div class="flex flex-wrap gap-3" id="desc-previews"></div>
                 <label class="mt-3 inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>添加描述图片
                     <input type="file" name="desc_images" accept="image/*" multiple class="hidden" onchange="previewDescImages(this)">
                 </label>
+                <p id="descSizeHint" class="text-xs mt-2 text-gray-400"></p>
             </div>
             <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-lg transition-all" id="submit-btn">发布闲置</button>
         </form>
@@ -78,10 +79,32 @@
 
 {% block scripts %}
 <script>
+const TB_MAX_BYTES = 50 * 1024 * 1024;
+
+function formatSize(bytes) {
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function updateDescSizeHint() {
+    var hint = document.getElementById('descSizeHint');
+    var total = 0;
+    descFileQueue.forEach(function(f) { total += f.size || 0; });
+    var cover = document.getElementById('cover-input');
+    if (cover && cover.files && cover.files[0]) total += cover.files[0].size || 0;
+    hint.classList.toggle('text-red-500', total > TB_MAX_BYTES);
+    hint.classList.toggle('text-gray-400', total <= TB_MAX_BYTES);
+    hint.textContent = '当前请求总大小约 ' + formatSize(total) + '，超出 50 MB 将无法提交。';
+}
+
 // 封面图片预览（单张替换）
 function previewCover(input) {
     const file = input.files[0];
     if (!file) return;
+    if (file.size > TB_MAX_BYTES) {
+        alert('封面图片超过 50MB，请重新选择更小的图片');
+        input.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function(e) {
         var img = document.getElementById('cover-preview');
@@ -90,6 +113,7 @@ function previewCover(input) {
         document.getElementById('cover-label').querySelector('.text-center').style.display = 'none';
     };
     reader.readAsDataURL(file);
+    updateDescSizeHint();
 }
 
 // 描述图片 - 全局文件队列（解决浏览器多次选择替换的问题）
@@ -98,9 +122,10 @@ var descFileQueue = [];
 function previewDescImages(input) {
     if (!input.files.length) return;
     var maxTotal = 9;
-    var files = Array.from(input.files).filter(function(f) { return f.type.startsWith('image/'); });
+    var files = Array.from(input.files).filter(function(f) { return f.type.startsWith('image/') && (f.size || 0) <= TB_MAX_BYTES; });
+    var skipped = Array.from(input.files).length - files.length;
     var room = maxTotal - descFileQueue.length;
-    if (room <= 0) { alert('描述图片最多 ' + maxTotal + ' 张'); input.value = ''; return; }
+    if (room <= 0) { alert('描述图片最多 ' + maxTotal + ' 张'); input.value = ''; updateDescSizeHint(); return; }
     var toAdd = files.slice(0, room);
     var container = document.getElementById('desc-previews');
     toAdd.forEach(function(file) {
@@ -120,6 +145,7 @@ function previewDescImages(input) {
                 del.onclick = function() {
                     descFileQueue = descFileQueue.filter(function(x) { return x !== f; });
                     wrap.remove();
+                    updateDescSizeHint();
                 };
                 wrap.appendChild(img);
                 wrap.appendChild(del);
@@ -129,7 +155,9 @@ function previewDescImages(input) {
         reader.readAsDataURL(file);
     });
     input.value = '';
+    if (skipped > 0) alert('有 ' + skipped + ' 张图片超过 50MB，已跳过');
     if (files.length > room) alert('超出上限，仅添加了前 ' + room + ' 张');
+    updateDescSizeHint();
 }
 
 // 拦截表单提交，把缓存的文件注入 FormData
@@ -138,15 +166,31 @@ document.querySelector('form').addEventListener('submit', function(e) {
     var fd = new FormData(this);
     fd.delete('desc_images');
     descFileQueue.forEach(function(f) { fd.append('desc_images', f); });
+    var totalBytes = 0;
+    fd.forEach(function(v) { if (v instanceof File) totalBytes += v.size; });
+    if (totalBytes > TB_MAX_BYTES) {
+        alert('提交失败：整次请求超过 50MB，请减少图片数量或压缩图片大小后重试');
+        return;
+    }
     var btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.textContent = '发布中...';
     fetch(this.action, { method: 'POST', body: fd })
         .then(function(r) {
+            if (r.status === 413) {
+                btn.disabled = false;
+                btn.textContent = '发布闲置';
+                alert('上传文件超过最大限制（50 MB），请减少图片数量或压缩图片后重试');
+                return;
+            }
             if (r.redirected) window.location.href = r.url;
             else return r.text().then(function(html) { document.documentElement.innerHTML = html; });
         })
-        .catch(function() { btn.disabled = false; btn.textContent = '发布闲置'; });
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = '发布闲置';
+            alert('网络异常，请检查后重试');
+        });
 });
 </script>
 {% endblock %}

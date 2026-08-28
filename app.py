@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """校桥 CampusBridge - 校园资源交换与交流平台"""
 import os
-from flask import Flask, render_template, send_from_directory, request
+from flask import Flask, render_template, send_from_directory, request, make_response, session, flash, url_for
 from config import Config
 from extensions import db, login_manager
 
@@ -221,6 +221,33 @@ def create_app():
         return send_from_directory(app.config['UPLOAD_FOLDER'], key)
 
     # 错误处理
+    @app.errorhandler(413)
+    def request_entity_too_large(e):
+        limit_mb = int(os.getenv('MAX_CONTENT_LENGTH', '50'))
+        msg = f'上传文件超过最大限制（单个请求最多 {limit_mb} MB），请压缩或拆分文件后重试。'
+        # 对于 JSON 接口（聊天/论坛图片上传）直接返回 JSON
+        path = request.path or ''
+        is_json_api = path.startswith('/chat/') or path.startswith('/forum/upload-image') or path.startswith('/forum/remove-image')
+        accept = request.headers.get('Accept', '')
+        if is_json_api or 'application/json' in accept or (request.is_xhr if hasattr(request, 'is_xhr') else False):
+            from flask import jsonify
+            return jsonify({'error': msg, 'ok': False}), 413
+        # 其他页面上传：闪存友好提示并重定向回 Referer
+        try:
+            flash(msg, 'error')
+            ref = request.headers.get('Referer', url_for('index'))
+            from werkzeug.utils import redirect
+            return redirect(ref)
+        except Exception:
+            html = f'''<!doctype html><html><head><meta charset="utf-8"><title>文件过大</title>
+<meta http-equiv="refresh" content="3;url=/">
+<style>body{{font-family:system-ui,sans-serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}}
+.card{{background:#fff;padding:48px 56px;border-radius:24px;box-shadow:0 10px 40px rgba(0,0,0,.08);text-align:center}}
+h1{{font-size:56px;margin:0 0 8px;background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}}
+p{{color:#64748b;margin:0 0 24px}}a{{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border-radius:14px;text-decoration:none;font-weight:600}}</style>
+</head><body><div class="card"><h1>文件过大</h1><p>{msg}</p><a href="/">返回首页</a></div></body></html>'''
+            return make_response(html, 413)
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template('search.html', keyword='', category='all',

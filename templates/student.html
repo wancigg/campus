@@ -533,6 +533,12 @@
     function previewAndSubmit(input) {
         if (!input.files || !input.files[0]) return;
         var file = input.files[0];
+        var AVATAR_MAX_BYTES = 50 * 1024 * 1024;
+        if (file.size > AVATAR_MAX_BYTES) {
+            alert('头像图片超过最大限制 50 MB，请压缩后重试');
+            input.value = '';
+            return;
+        }
         // 预览
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -559,6 +565,12 @@
     function submitModalAvatar(input) {
         if (!input.files || !input.files[0]) return;
         var file = input.files[0];
+        var AVATAR_MAX_BYTES = 50 * 1024 * 1024;
+        if (file.size > AVATAR_MAX_BYTES) {
+            alert('头像图片超过最大限制 50 MB，请压缩后重试');
+            input.value = '';
+            return;
+        }
         var reader = new FileReader();
         reader.onload = function(e) {
             var preview = document.getElementById('modalAvatarPreview');
