@@ -138,7 +138,13 @@ def profile():
     # 统计数据
     post_count = Post.query.filter_by(user_id=current_user.id).count()
     material_count = Material.query.filter_by(user_id=current_user.id).count()
-    competition_count = Competition.query.filter_by(owner_id=current_user.id).count()
+    competition_count = Competition.query.filter(
+        Competition.owner_id == current_user.id,
+        Competition.status != 'archived'
+    ).count()
+    archived_team_count = Competition.query.filter_by(
+        owner_id=current_user.id, status='archived'
+    ).count()
     textbook_count = Textbook.query.filter_by(user_id=current_user.id).count()
     friend_count = current_user.get_friend_count()
 
@@ -156,8 +162,16 @@ def profile():
             .paginate(page=page, per_page=per_page, error_out=False)
         items = pagination.items
     elif tab == 'competitions':
-        pagination = Competition.query.filter_by(owner_id=current_user.id)\
-            .order_by(Competition.created_at.desc())\
+        pagination = Competition.query.filter(
+            Competition.owner_id == current_user.id,
+            Competition.status != 'archived'
+        ).order_by(Competition.created_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+        items = pagination.items
+    elif tab == 'archived_teams':
+        pagination = Competition.query.filter_by(
+            owner_id=current_user.id, status='archived'
+        ).order_by(Competition.created_at.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
         items = pagination.items
     elif tab == 'textbooks':
@@ -171,6 +185,7 @@ def profile():
                            post_count=post_count,
                            material_count=material_count,
                            competition_count=competition_count,
+                           archived_team_count=archived_team_count,
                            textbook_count=textbook_count,
                            friend_count=friend_count,
                            tab=tab,

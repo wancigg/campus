@@ -37,7 +37,8 @@ def list():
 
     page = request.args.get('page', 1, type=int)
     comp_type = request.args.get('type', '')
-    query = Competition.query
+    # 已归档队伍仅在用户个人中心展示，不再出现在公共招募看板
+    query = Competition.query.filter(Competition.status != 'archived')
     if comp_type:
         query = query.filter_by(comp_type=comp_type)
     pagination = query.order_by(Competition.created_at.desc()).paginate(
@@ -177,6 +178,8 @@ def handle_application(id, app_id, action):
         flash('只有招募发起人可以审核申请。', 'error')
         return redirect(url_for('competition.detail', id=id))
     app = Application.query.get_or_404(app_id)
+    if app.competition_id != comp.id:
+        abort(404)
     if action not in ('approve', 'reject'):
         flash('无效操作。', 'error')
         return redirect(url_for('competition.detail', id=id))
@@ -316,16 +319,18 @@ def close(id):
     return redirect(url_for('competition.detail', id=id))
 
 
-@competition_bp.route('/<int:id>/delete', methods=['POST'])
+@competition_bp.route('/<int:id>/archive', methods=['POST'])
 @login_required
-def delete(id):
+def archive(id):
+    """归档队伍，保留招募、申请、对话和交流群历史。"""
     comp = Competition.query.get_or_404(id)
     if comp.owner_id != current_user.id:
-        flash('只有发起人可以删除该招募。', 'error')
+        flash('只有发起人可以归档该队伍。', 'error')
         return redirect(url_for('competition.detail', id=id))
-    # cascade 会自动清理：applications -> conversation_messages
-    #                    team_group -> group_members + group_messages
-    db.session.delete(comp)
+    if comp.status != 'closed':
+        flash('请先关闭招募，再归档队伍。', 'warning')
+        return redirect(url_for('competition.detail', id=id))
+    comp.status = 'archived'
     db.session.commit()
-    flash('招募已删除。', 'success')
-    return redirect(url_for('competition.list'))
+    flash('队伍已归档，招募详情和历史记录已保留。', 'success')
+    return redirect(url_for('auth.profile', tab='archived_teams'))

@@ -78,7 +78,8 @@ def create_app():
         competition_open = 0
         competition_full = 0
         competition_closed = 0
-        all_comps = Competition.query.all()
+        # 归档队伍只保留在用户个人中心，不计入首页公开统计和推荐
+        all_comps = Competition.query.filter(Competition.status != 'archived').all()
         for c in all_comps:
             is_closed_status = (c.status == 'closed')
             is_over_deadline = (c.deadline and c.deadline < today)

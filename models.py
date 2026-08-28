@@ -353,7 +353,7 @@ class Competition(db.Model):
     deadline = db.Column(db.Date)
     team_size = db.Column(db.Integer, default=0)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    status = db.Column(db.String(20), default='open')  # open/closed
+    status = db.Column(db.String(20), default='open')  # open/closed/archived
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     applications = db.relationship('Application', backref='competition', lazy='dynamic',
