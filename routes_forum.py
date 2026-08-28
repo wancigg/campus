@@ -419,19 +419,47 @@ def remove_image():
 @login_required
 def delete_post(id):
     post = Post.query.get_or_404(id)
-    if post.user_id != current_user.id:
-        flash('只有作者可以删除该帖子。', 'error')
+    cat_id = post.category_id if post else None
+    is_owner = post.user_id == current_user.id
+    if not is_owner and not current_user.is_admin():
+        flash('只有作者或管理员可以删除该帖子。', 'error')
         return redirect(url_for('forum.post', id=id))
-    # 删除图片文件
-    for img in post.images.all():
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], img.filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-    PostImage.query.filter_by(post_id=id).delete()
-    Comment.query.filter_by(post_id=id).delete()
-    PostLike.query.filter_by(post_id=id).delete()
-    PostFavorite.query.filter_by(post_id=id).delete()
-    db.session.delete(post)
-    db.session.commit()
+    # 先把磁盘图片文件删了（即使后续事务回滚，也不阻塞下次删除再尝试删库记录）
+    try:
+        for img in list(post.images):
+            if not getattr(img, 'filename', None):
+                continue
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], img.filename)
+            try:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            except OSError:
+                pass
+    except Exception:
+        # 图片读关系/删文件异常不应该阻塞删帖主流程
+        pass
+    post_link = url_for('forum.post', id=id)
+    try:
+        # 清理通知关联（Notification.link 不是 FK，但为了避免脏数据顺手清）
+        from models import Notification
+        Notification.query.filter_by(link=post_link).delete(synchronize_session=False)
+        # 用级联关系清理 + 主对象删除：cascade='all, delete-orphan' 会带掉 images/comments/likes/favorites
+        db.session.delete(post)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        try:
+            current_app.logger.exception('delete_post commit error: %s', e)
+        except Exception:
+            pass
+        flash('删除失败：服务器异常，请稍后重试。', 'error')
+        # 兜底：帖子还存在就回详情页，否则跳到分类页/首页
+        from flask import request
+        fallback = url_for('forum.category', cat_id=cat_id) if cat_id else url_for('forum.index')
+        if Post.query.get(id) is not None:
+            return redirect(url_for('forum.post', id=id))
+        return redirect(request.referrer or fallback)
     flash('帖子已删除。', 'success')
-    return redirect(url_for('forum.category', cat_id=post.category_id))
+    if cat_id:
+        return redirect(url_for('forum.category', cat_id=cat_id))
+    return redirect(url_for('forum.index'))
