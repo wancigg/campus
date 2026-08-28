@@ -37,6 +37,43 @@
         }
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 统一日期选择器：flatpickr（替换浏览器原生 type=date，风格一致） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_green.min.css"
+          onerror="this.remove()">
+    <style>
+        /* flatpickr 与现有输入框风格对齐：圆角、聚焦描边色跟随各页面的聚焦色（ring 颜色） */
+        .flatpickr-wrapper { width: 100%; display: inline-block; }
+        .flatpickr-input, .flatpickr-mobile {
+            width: 100%;
+            border-radius: 0.75rem !important; /* 与页面统一 12px / rounded-xl */
+            background-color: #fff !important;
+        }
+        /* 让竞赛主题的橙红色系在日历选中/hover 与页面渐变一致（主题绿已覆盖基础，这里仅强调 today/selected 细节） */
+        .flatpickr-day.today:not(.selected) { border-color: #f97316; color: #ea580c; }
+        .flatpickr-day.selected,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange,
+        .flatpickr-day.selected.inRange,
+        .flatpickr-day.startRange.inRange,
+        .flatpickr-day.endRange.inRange,
+        .flatpickr-day.selected:focus,
+        .flatpickr-day.startRange:focus,
+        .flatpickr-day.endRange:focus,
+        .flatpickr-day.selected:hover,
+        .flatpickr-day.startRange:hover,
+        .flatpickr-day.endRange:hover,
+        .flatpickr-day.selected.prevMonthDay,
+        .flatpickr-day.startRange.prevMonthDay,
+        .flatpickr-day.endRange.prevMonthDay,
+        .flatpickr-day.selected.nextMonthDay,
+        .flatpickr-day.startRange.nextMonthDay,
+        .flatpickr-day.endRange.nextMonthDay {
+            background: linear-gradient(135deg,#3b82f6,#06b6d4);
+            border-color: transparent;
+            box-shadow: 0 6px 14px rgba(59,130,246,.18);
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body class="min-h-screen flex flex-col bg-[#f8fafc]">
@@ -315,6 +352,61 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <!-- 统一日期选择器：flatpickr + 简体中文 locale；把所有 input[type=date] 替换成同一套自定义面板 -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/zh.js"></script>
+    <script>
+    (function () {
+        function initDatePickers(root) {
+            var scope = root || document;
+            if (typeof flatpickr !== 'function') { return; }
+            // 兼容中文 locale：cdn 没加载到就手动填几个关键字，至少不出现英文
+            var localeZh = (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.zh) ? 'zh' : {
+                weekdays: { shorthand: ['日','一','二','三','四','五','六'], longhand: ['周日','周一','周二','周三','周四','周五','周六'] },
+                months: { shorthand: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+                          longhand: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'] },
+                rangeSeparator: ' 至 ', weekAbbreviation: '周', scrollTitle: '滚动切换', toggleTitle: '点击切换 12/24 小时',
+                firstDayOfWeek: 1, yearAriaLabel: '年', time_24hr: true
+            };
+
+            var inputs = scope.querySelectorAll('input[type="date"], input[data-datepicker="true"]');
+            for (var i = 0; i < inputs.length; i++) {
+                (function (el) {
+                    if (el._flatpickr) { return; }
+                    var dfmt = el.getAttribute('data-date-format') || 'Y-m-d';
+                    var minDate = el.getAttribute('data-min-date') || undefined;
+                    var maxDate = el.getAttribute('data-max-date') || undefined;
+                    var defaultDate = el.value || el.getAttribute('data-default-date') || undefined;
+                    var disabled = el.hasAttribute('disabled') || el.hasAttribute('readonly');
+                    var opts = {
+                        dateFormat: dfmt,
+                        locale: localeZh,
+                        allowInput: true,
+                        clickOpens: !disabled,
+                        disableMobile: true, // 禁用移动端回退到原生选择器；保持同一套面板
+                        static: false,
+                        wrap: false,
+                        defaultDate: defaultDate || undefined,
+                        minDate: (minDate === 'today') ? new Date() : minDate,
+                        maxDate: (maxDate === 'today') ? new Date() : maxDate
+                    };
+                    // 先把 type=date 改成 text，避免浏览器原生面板再次弹出
+                    el.setAttribute('type', 'text');
+                    el.setAttribute('autocomplete', 'off');
+                    el._flatpickr = flatpickr(el, opts);
+                })(inputs[i]);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { initDatePickers(); });
+        } else {
+            initDatePickers();
+        }
+        // 暴露给后续 AJAX 渲染的模板调用
+        window.initDatePickers = initDatePickers;
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
