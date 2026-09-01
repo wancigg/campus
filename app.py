@@ -9,6 +9,8 @@ from extensions import db, login_manager
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    # 注入当前运行库模式：mysql=主库可用；sqlite=本地暂存（待 MySQL 恢复后可同步）
+    app.config.setdefault('DATABASE_MODE', 'sqlite')
 
     # 初始化扩展
     db.init_app(app)

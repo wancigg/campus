@@ -15,31 +15,31 @@ class Config:
     """基础配置"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-    # 数据库配置（默认使用 MySQL，无 MySQL 时回退到 SQLite）
+    # 数据库配置：MySQL 可用时作为主库，不可用时使用本地 SQLite 暂存
     DATABASE_URL = os.getenv('DATABASE_URL', '')
-    if DATABASE_URL:
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL
-    else:
-        mysql_user = os.getenv('MYSQL_USER', 'root')
-        mysql_password = os.getenv('MYSQL_PASSWORD', '')
-        mysql_host = os.getenv('MYSQL_HOST', 'localhost')
-        mysql_port = os.getenv('MYSQL_PORT', '3306')
-        mysql_db = os.getenv('MYSQL_DATABASE', 'campus_bridge')
-        _mysql_uri = (
-            f'mysql://{mysql_user}:{mysql_password}'
-            f'@{mysql_host}:{mysql_port}/{mysql_db}'
-            f'?charset=utf8mb4'
-        )
-        try:
-            import sqlalchemy
-            _engine = sqlalchemy.create_engine(_mysql_uri)
-            with _engine.connect() as _conn:
-                _conn.execute(sqlalchemy.text('SELECT 1'))
-            _engine.dispose()
-            SQLALCHEMY_DATABASE_URI = _mysql_uri
-        except Exception:
-            _db_path = os.path.join(BASE_DIR, 'campus_bridge.db')
-            SQLALCHEMY_DATABASE_URI = f'sqlite:///{_db_path}'
+    mysql_user = os.getenv('MYSQL_USER', 'root')
+    mysql_password = os.getenv('MYSQL_PASSWORD', '')
+    mysql_host = os.getenv('MYSQL_HOST', 'localhost')
+    mysql_port = os.getenv('MYSQL_PORT', '3306')
+    mysql_db = os.getenv('MYSQL_DATABASE', 'campus_bridge')
+    MYSQL_DATABASE_URI = DATABASE_URL or (
+        f'mysql+pymysql://{mysql_user}:{mysql_password}'
+        f'@{mysql_host}:{mysql_port}/{mysql_db}'
+        f'?charset=utf8mb4'
+    )
+    SQLITE_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'campus_bridge.db')
+    DATABASE_MODE = 'sqlite'
+    try:
+        import sqlalchemy
+        _engine = sqlalchemy.create_engine(MYSQL_DATABASE_URI)
+        with _engine.connect() as _conn:
+            _conn.execute(sqlalchemy.text('SELECT 1'))
+        _engine.dispose()
+        SQLALCHEMY_DATABASE_URI = MYSQL_DATABASE_URI
+        DATABASE_MODE = 'mysql'
+    except Exception:
+        SQLALCHEMY_DATABASE_URI = SQLITE_DATABASE_URI
+        DATABASE_MODE = 'sqlite'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
 
