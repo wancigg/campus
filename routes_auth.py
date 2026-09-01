@@ -4,7 +4,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db
 from models import User, Post, Material, Competition, Textbook
-from forms import validate_username, validate_email, validate_password, allowed_image_file
+from sqlalchemy.exc import IntegrityError
+from forms import validate_username, validate_email, validate_password, allowed_image_file, normalize_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -32,7 +33,8 @@ def register():
         return redirect(url_for('index'))
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
+        # 邮箱统一归一化：去空白 + 小写，确保一个邮箱只能注册一个账号
+        email = normalize_email(request.form.get('email', ''))
         password = request.form.get('password', '')
         confirm = request.form.get('confirm', '')
 
@@ -56,7 +58,8 @@ def register():
         if User.query.filter_by(username=username).first():
             flash('用户名已被注册。', 'error')
             return render_template('register.html', username=username, email=email)
-        if User.query.filter_by(email=email).first():
+        # 用归一化后的小写邮箱查重，避免 "A@x.com" 与 "a@x.com" 绕过
+        if User.query.filter(User.email.isnot(None), db.func.lower(User.email) == email).first():
             flash('邮箱已被注册。', 'error')
             return render_template('register.html', username=username, email=email)
 
@@ -64,7 +67,13 @@ def register():
         user.set_password(password)
         user.add_points(10)  # 注册奖励：+10 积分
         db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # 并发提交兜底：数据库唯一约束冲突时给出明确中文提示
+            db.session.rollback()
+            flash('该邮箱已注册，请直接登录或更换邮箱。', 'error')
+            return render_template('register.html', username=username, email=email)
         flash('注册成功，请登录！赠 10 初始积分 🎁', 'success')
         return redirect(url_for('auth.login'))
     return render_template('register.html')
@@ -198,14 +207,19 @@ def profile():
 def edit_profile():
     """编辑个人资料"""
     bio = request.form.get('bio', '').strip()
-    email = request.form.get('email', '').strip()
+    # 邮箱统一归一化：去空白 + 小写，确保一个邮箱只能绑定一个账号
+    email = normalize_email(request.form.get('email', ''))
 
-    if email and email != current_user.email:
+    if email and email != normalize_email(current_user.email):
         ok, msg = validate_email(email)
         if not ok:
             flash(msg, 'error')
             return redirect(url_for('auth.profile'))
-        if User.query.filter(User.email == email, User.id != current_user.id).first():
+        if User.query.filter(
+            User.email.isnot(None),
+            db.func.lower(User.email) == email,
+            User.id != current_user.id
+        ).first():
             flash('该邮箱已被其他用户使用。', 'error')
             return redirect(url_for('auth.profile'))
         current_user.email = email

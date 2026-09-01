@@ -12,9 +12,17 @@ def validate_username(username):
     return True, ''
 
 
+def normalize_email(email):
+    """邮箱归一化：去掉首尾空白并转小写，None / 空串返回空字符串。"""
+    if email is None:
+        return ''
+    return (str(email).strip() or '').lower()
+
+
 def validate_email(email):
-    """校验邮箱格式"""
-    if not email or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+    """校验邮箱格式（入参先做空白与大小写归一化）"""
+    normalized = normalize_email(email)
+    if not normalized or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', normalized):
         return False, '请输入有效的邮箱地址'
     return True, ''
 
