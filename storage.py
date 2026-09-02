@@ -3,8 +3,11 @@
 import os
 import uuid
 import shutil
+import logging
 from datetime import datetime
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class LocalStorage:
@@ -22,9 +25,49 @@ class LocalStorage:
         ext = os.path.splitext(filename)[1].lower()
         key = f"{datetime.utcnow().strftime('%Y/%m')}/{uuid.uuid4().hex}{ext}"
         full_path = self._get_path(key)
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        dir_path = os.path.dirname(full_path)
+
+        #region debug-point chat-image-upload-fail
+        import traceback
+        try:
+            base_stat = os.stat(self.base_path) if os.path.exists(self.base_path) else None
+            dir_existed = os.path.isdir(dir_path)
+            logger.error(
+                '[storage-save-debug] base_path=%r exists=%s base_stat_uid=%s base_stat_perm=%s '
+                'dir_path=%r dir_existed=%s filename=%r target_full_path=%r',
+                self.base_path, os.path.exists(self.base_path),
+                base_stat.st_uid if base_stat else None,
+                oct(base_stat.st_mode) if base_stat else None,
+                dir_path, dir_existed, filename, full_path
+            )
+        except Exception as _e:
+            logger.error('[storage-save-debug] 预检查异常: %s', _e)
+        #endregion debug-point chat-image-upload-fail
+
+        try:
+            os.makedirs(dir_path, exist_ok=True)
+        except Exception as e:
+            #region debug-point chat-image-upload-fail
+            logger.error('[storage-save-debug] makedirs 失败: dir=%r errno=%s type=%s msg=%s\n%s',
+                         dir_path, getattr(e, 'errno', None), type(e).__name__, str(e), traceback.format_exc())
+            #endregion debug-point chat-image-upload-fail
+            raise
         file_obj.seek(0)
-        file_obj.save(full_path)
+        try:
+            file_obj.save(full_path)
+        except Exception as e:
+            #region debug-point chat-image-upload-fail
+            logger.error('[storage-save-debug] file_obj.save 失败: full_path=%r errno=%s type=%s msg=%s\n%s',
+                         full_path, getattr(e, 'errno', None), type(e).__name__, str(e), traceback.format_exc())
+            #endregion debug-point chat-image-upload-fail
+            raise
+        #region debug-point chat-image-upload-fail
+        try:
+            sz = os.path.getsize(full_path) if os.path.exists(full_path) else None
+            logger.error('[storage-save-debug] 落盘成功: key=%r size_bytes=%s', key, sz)
+        except Exception as _e:
+            logger.error('[storage-save-debug] 落盘后检查异常: %s', _e)
+        #endregion debug-point chat-image-upload-fail
         return key
 
     def delete(self, key):

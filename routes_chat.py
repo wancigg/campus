@@ -1,5 +1,6 @@
 """好友私聊 + 群聊路由"""
 import os
+import logging
 from datetime import timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
@@ -10,10 +11,25 @@ from models import User, ChatMessage, ChatGroup, ChatGroupMember, ChatGroupMessa
 from storage import save_file
 from sqlalchemy import or_, and_
 
+logger = logging.getLogger(__name__)
+
 chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
 
-ALLOWED_IMAGE_EXT = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
-ALLOWED_FILE_EXT = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar', 'md'}
+#region debug-point chat-image-upload-fail - 扩展白名单（原缺HEIC/HEIF/AVIF手机新格式+常见文档）
+ALLOWED_IMAGE_EXT = {
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp',
+    'heic', 'heif', 'avif', 'tif', 'tiff', 'svg', 'ico',
+}
+ALLOWED_FILE_EXT = {
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar', 'md',
+    '7z', 'tar', 'gz', 'bz2', 'xz',
+    'csv', 'rtf', 'odt', 'ods', 'odp',
+    'mp3', 'wav', 'ogg', 'flac', 'aac',
+    'mp4', 'mov', 'avi', 'mkv', 'webm',
+    'json', 'xml', 'yaml', 'yml', 'ini', 'conf',
+    'apk', 'ipa',
+}
+#endregion debug-point chat-image-upload-fail
 
 
 def _allowed_file(filename):
@@ -38,6 +54,32 @@ def _format_size(num_bytes):
         return f'{(num_bytes / (1024 * 1024)):.1f} MB'
 
 
+#region debug-point chat-image-upload-fail
+def _sanitize_filename(raw_filename):
+    """包装 secure_filename：如果剥离中文后丢失扩展名（只剩"png"或空），回退用原始文件名 + ASCII兜底"""
+    if not raw_filename:
+        return 'file'
+    safe = secure_filename(raw_filename)
+    # secure_filename 把中文全删掉后的典型症状：只剩下扩展名（例如"照片.png" -> "png" 没有点号）
+    if safe and '.' not in safe and '.' in raw_filename:
+        raw_ext = raw_filename.rsplit('.', 1)[1].lower()
+        if raw_ext:
+            # 只保留扩展名是好的 -> 改成 "uploaded_{hex}.ext" 这样既安全又保留扩展名
+            import uuid
+            safe = f'uploaded_{uuid.uuid4().hex[:8]}.{raw_ext}'
+            logger.error('[chat-upload-debug] secure_filename 剥离中文后无点号: raw=%r safe_after_fix=%r', raw_filename, safe)
+    if not safe:
+        # 全中文无英文 + 无扩展名情况
+        ext = ''
+        if '.' in raw_filename:
+            ext = raw_filename.rsplit('.', 1)[1].lower()
+        import uuid
+        safe = f'uploaded_{uuid.uuid4().hex[:8]}' + (f'.{ext}' if ext else '')
+        logger.error('[chat-upload-debug] secure_filename 返回空: raw=%r safe_after_fix=%r', raw_filename, safe)
+    return safe
+#endregion debug-point chat-image-upload-fail
+
+
 @chat_bp.route('/upload', methods=['POST'])
 @login_required
 def upload():
@@ -47,13 +89,40 @@ def upload():
     f = request.files['file']
     if not f or f.filename == '':
         return jsonify({'error': '没有选择文件'}), 400
-    filename = secure_filename(f.filename) or 'file'
-    if not _allowed_file(filename):
-        return jsonify({'error': '不支持的文件类型，支持图片和常见文档格式'}), 400
+
+    #region debug-point chat-image-upload-fail
+    raw_filename = f.filename
+    content_length = request.content_length
+    content_type = f.content_type
+    #endregion debug-point chat-image-upload-fail
+
+    filename = _sanitize_filename(raw_filename)  # 用包装后的 secure_filename
+
+    #region debug-point chat-image-upload-fail
+    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    allowed_pass = _allowed_file(filename)
+    logger.error(
+        '[chat-upload-debug] user=%s uid=%s raw_file=%r sanitized=%r ext=%r size=%s content_type=%r allowed=%s',
+        getattr(current_user, 'username', None),
+        getattr(current_user, 'id', None),
+        raw_filename, filename, ext, content_length, content_type, allowed_pass
+    )
+    #endregion debug-point chat-image-upload-fail
+
+    if not allowed_pass:
+        logger.error('[chat-upload-debug] 扩展名白名单拦截: ALLOWED_IMAGE=%s ALLOWED_FILE=%s',
+                     ALLOWED_IMAGE_EXT, ALLOWED_FILE_EXT)
+        return jsonify({'error': f'不支持的文件类型（{ext or "无扩展名"}），支持图片和常见文档格式'}), 400
 
     try:
         key = save_file(f, filename)
+        logger.error('[chat-upload-debug] save_file 成功: key=%r', key)
     except Exception as e:
+        #region debug-point chat-image-upload-fail
+        import traceback
+        logger.error('[chat-upload-debug] save_file 异常: type=%s errno=%s msg=%s\n%s',
+                     type(e).__name__, getattr(e, 'errno', None), str(e), traceback.format_exc())
+        #endregion debug-point chat-image-upload-fail
         return jsonify({'error': f'文件上传失败：{str(e)}'}), 500
 
     ftype = _get_file_type(filename)
@@ -164,6 +233,14 @@ def friend_send(user_id):
     file_key = (data.get('file_key') or '').strip()
     file_name = (data.get('file_name') or '').strip()
     file_type = (data.get('file_type') or '').strip() or 'text'
+
+    #region debug-point chat-image-upload-fail
+    logger.error(
+        '[chat-send-debug] FRIEND sender=%s(%s) receiver_id=%s content_len=%s file_key=%r file_name=%r file_type=%r',
+        getattr(current_user, 'username', None), getattr(current_user, 'id', None),
+        user_id, len(content), file_key, file_name, file_type
+    )
+    #endregion debug-point chat-image-upload-fail
 
     if not content and not file_key:
         return jsonify({'error': '消息不能是空的'}), 400
@@ -318,6 +395,14 @@ def group_send(group_id):
     file_key = (data.get('file_key') or '').strip()
     file_name = (data.get('file_name') or '').strip()
     file_type = (data.get('file_type') or '').strip() or 'text'
+
+    #region debug-point chat-image-upload-fail
+    logger.error(
+        '[chat-send-debug] GROUP sender=%s(%s) group_id=%s content_len=%s file_key=%r file_name=%r file_type=%r',
+        getattr(current_user, 'username', None), getattr(current_user, 'id', None),
+        group_id, len(content), file_key, file_name, file_type
+    )
+    #endregion debug-point chat-image-upload-fail
 
     if not content and not file_key:
         return jsonify({'error': '消息不能是空的'}), 400
