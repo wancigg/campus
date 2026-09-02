@@ -12,9 +12,12 @@ env/
 .env.local
 .env.*.local
 
-# Database (schema in db_init.sql, seed data in seed_data.py)
+# Database (schema in database/db_init.sql, seed data in database/seed_data.py)
 *.db
 instance/
+# Keep database schema/sql scripts; ignore runtime SQLite files inside database/
+database/*.db
+!database/.gitkeep
 
 # Node
 node_modules/

@@ -4,10 +4,16 @@ import argparse
 import os
 import sys
 
+# 允许直接 `python scripts/sync_database.py` 执行：把项目根加入 sys.path
+_HERE = os.path.abspath(os.path.dirname(__file__))
+_ROOT = os.path.abspath(os.path.join(_HERE, os.pardir))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
 from sqlalchemy import create_engine, insert, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from config import BASE_DIR, Config
+from config import Config, SQLITE_DB_PATH
 from models import db
 
 
@@ -75,8 +81,8 @@ def main():
     parser = argparse.ArgumentParser(description='将本地 SQLite 暂存数据同步到 MySQL')
     parser.add_argument(
         '--sqlite',
-        default=os.path.join(BASE_DIR, 'campus_bridge.db'),
-        help='SQLite 数据库路径，默认使用项目根目录下的 campus_bridge.db',
+        default=SQLITE_DB_PATH,
+        help=f'SQLite 数据库路径，默认：{SQLITE_DB_PATH}',
     )
     parser.add_argument(
         '--dry-run',

@@ -1,11 +1,18 @@
 """校桥 CampusBridge 种子数据脚本
 为各大功能区生成丰富的示例数据，方便开发和演示。
-运行方式：python seed_data.py
+运行方式：python database/seed_data.py
 """
 
 import random
 import io
+import os
 import sys
+
+# 允许直接 `python database/seed_data.py` 执行：把项目根加入 sys.path
+_HERE = os.path.abspath(os.path.dirname(__file__))
+_ROOT = os.path.abspath(os.path.join(_HERE, os.pardir))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 
 # 解决 Windows 控制台中文/特殊字符编码问题
 if sys.platform == 'win32':
