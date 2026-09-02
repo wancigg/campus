@@ -249,7 +249,11 @@ def friend_send(user_id):
 
     msg = ChatMessage(
         sender_id=current_user.id, receiver_id=user_id,
-        content=content or None,
+        #region debug-point chat-image-upload-fail
+        # 注意：MySQL 真实表 chat_messages.content 可能为 NOT NULL（db_init.sql 历史约束），
+        # 不能传 None；空字符串语义同样是"无文字"且兼容性最好
+        content=content if content else '',
+        #endregion debug-point chat-image-upload-fail
         file_key=file_key or None,
         file_name=file_name or None,
         file_type=file_type if file_key else 'text',
@@ -411,7 +415,10 @@ def group_send(group_id):
 
     msg = ChatGroupMessage(
         group_id=group_id, sender_id=current_user.id,
-        content=content or None,
+        #region debug-point chat-image-upload-fail
+        # MySQL 真实表 chat_group_messages.content 可能为 NOT NULL，不能传 None
+        content=content if content else '',
+        #endregion debug-point chat-image-upload-fail
         file_key=file_key or None,
         file_name=file_name or None,
         file_type=file_type if file_key else 'text',
