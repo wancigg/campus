@@ -158,32 +158,66 @@ innodb_flush_log_at_trx_commit = 1
 EOF
 )
   if ! grep -q "server-id = 1" "$MASTER_CNF" 2>/dev/null; then
-    run "备份 $MASTER_CNF 并追加 binlog 段" \
-      bash -c "set -e
-        cp -a '$MASTER_CNF' '${MASTER_CNF}.bak.ms.\$(date +%Y%m%d%H%M)'
-        cat >>'$MASTER_CNF' <<'MASTEREOF'
-${MASTER_APPEND}
+    run "备份 $MASTER_CNF" cp -a "$MASTER_CNF" "${MASTER_CNF}.bak.ms.$(date +%Y%m%d%H%M%S)"
+    # 用 sed 在最后一个 [mysqld] section 后面插入 binlog 配置
+    # 如果文件里没有 [mysqld] section，就在末尾新建一个
+    run "追加 binlog 配置到 [mysqld] section" bash -c "
+      if grep -q '^\[mysqld\]' '$MASTER_CNF'; then
+        # 在最后一个 [mysqld] 行后面追加
+        sed -i '/^\[mysqld\]/r /dev/stdin' '$MASTER_CNF' <<'MASTEREOF'
+
+# === CampusBridge demo master (added by deploy_mysql_ms_demo.sh) ===
+server-id = 1
+log_bin = mysql-bin
+binlog_format = ROW
+binlog_do_db = ${MASTER_DB}
+expire_logs_days = 7
+sync_binlog = 1
+innodb_flush_log_at_trx_commit = 1
 MASTEREOF
-"
+      else
+        # 文件里没有 [mysqld]，在末尾新建
+        cat >> '$MASTER_CNF' <<'MASTEREOF'
+[mysqld]
+# === CampusBridge demo master (added by deploy_mysql_ms_demo.sh) ===
+server-id = 1
+log_bin = mysql-bin
+binlog_format = ROW
+binlog_do_db = ${MASTER_DB}
+expire_logs_days = 7
+sync_binlog = 1
+innodb_flush_log_at_trx_commit = 1
+MASTEREOF
+      fi
+    "
   fi
 
-  run "重启主库使 binlog 参数生效" systemctl restart mysqld
+  # MariaDB 用 mariadb 服务名；MySQL 用 mysqld
+  if systemctl list-unit-files 2>/dev/null | grep -q '^mariadb\.service'; then
+    DB_SERVICE="mariadb"
+  else
+    DB_SERVICE="mysqld"
+  fi
+  run "重启主库($DB_SERVICE)使 binlog 参数生效" systemctl restart "$DB_SERVICE"
   sleep 3
 
   # 2. 主库创建复制账号 repl
-  echo "=== 步骤 2/7 主库创建复制账号 $REPL_USER（脱敏密码演示，实际写入 .env 的 MYSQL_REPL_PASSWORD） ==="
-  CREATE_REPL_SQL="
-    CREATE USER IF NOT EXISTS '${REPL_USER}'@'%' IDENTIFIED BY '___REPL_PW_PLACEHOLDER___';
-    GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${REPL_USER}'@'%';
-    FLUSH PRIVILEGES;
-  "
+  echo "=== 步骤 2/7 主库创建复制账号 $REPL_USER ==="
+  # MariaDB 5.5 不支持 CREATE USER IF NOT EXISTS，改成先查再建
   if [[ $DRY_RUN -eq 1 ]]; then
     echo "[DRY] 主库执行（repl 密码已脱敏为 ****）:"
-    echo "      CREATE USER IF NOT EXISTS '$REPL_USER'@'%' IDENTIFIED BY '$(mask)'; GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '$REPL_USER'@'%'; FLUSH PRIVILEGES;"
+    echo "      SELECT User,Host FROM mysql.user WHERE User='${REPL_USER}';"
+    echo "      若无记录则: CREATE USER '${REPL_USER}'@'%' IDENTIFIED BY '$(mask)';"
+    echo "      GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${REPL_USER}'@'%'; FLUSH PRIVILEGES;"
   else
-    # 真实执行：替换占位符为 .env 的 REPL_PASSWORD，不把 SQL 明文打印
-    CREATE_REPL_SQL_REAL="${CREATE_REPL_SQL/___REPL_PW_PLACEHOLDER___/${REPL_PASSWORD}}"
-    mysql_master -e "${CREATE_REPL_SQL_REAL}"
+    EXISTS=$(mysql_master -N -B -e "SELECT COUNT(*) FROM mysql.user WHERE User='${REPL_USER}' AND Host='%';" 2>/dev/null || echo 0)
+    if [[ "$EXISTS" -eq 0 ]]; then
+      mysql_master -e "CREATE USER '${REPL_USER}'@'%' IDENTIFIED BY '${REPL_PASSWORD}';"
+    else
+      echo "  复制账号 ${REPL_USER}@'%' 已存在，跳过 CREATE USER"
+      mysql_master -e "SET PASSWORD FOR '${REPL_USER}'@'%' = PASSWORD('${REPL_PASSWORD}');"
+    fi
+    mysql_master -e "GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${REPL_USER}'@'%'; FLUSH PRIVILEGES;"
   fi
 
   # 3. 导出主库快照；--master-data=2 将复制坐标写入 dump 文件头
@@ -235,18 +269,13 @@ SLAVEEOF
     bash -c "mkdir -p '${SLAVE_DATADIR}'; chown -R mysql:mysql '${SLAVE_DATADIR}'; chmod 700 '${SLAVE_DATADIR}'"
 
   if [[ $DRY_RUN -eq 1 ]]; then
-    echo "[DRY] 根据 MySQL 版本选择 datadir 初始化方式：MySQL 5.7 用 mysql_install_db --user=mysql --datadir=...；MySQL 8.0 用 mysqld --initialize-insecure --user=mysql --datadir=..."
+    echo "[DRY] 使用 mysql_install_db 初始化从库 datadir（MariaDB 5.5/10.x 通用）："
+    echo "      mysql_install_db --defaults-file=$SLAVE_CNF --user=mysql --datadir=$SLAVE_DATADIR"
   else
-    MYSQL_VER="$($MYSQL --version | grep -oE '[0-9]+\.[0-9]+' | head -n 1)"
-    MAJOR="${MYSQL_VER%%.*}"
-    MINOR="${MYSQL_VER#*.}"
-    echo "  检测 MySQL 版本主段=$MYSQL_VER (major=$MAJOR minor=$MINOR)"
-    if [[ "$MAJOR" -ge 8 ]]; then
-      "$MYSQLD" --defaults-file="$SLAVE_CNF" --initialize-insecure --user=mysql
-    else
-      "$MYSQL_INSTALL_DB" --defaults-file="$SLAVE_CNF" --user=mysql --datadir="$SLAVE_DATADIR" || \
-        "$MYSQLD" --defaults-file="$SLAVE_CNF" --initialize-insecure --user=mysql
-    fi
+    echo "  使用 mysql_install_db 初始化从库 datadir..."
+    "$MYSQL_INSTALL_DB" --defaults-file="$SLAVE_CNF" --user=mysql --datadir="$SLAVE_DATADIR" || \
+      { echo "[WARN] mysql_install_db 失败，尝试 mysqld --initialize-insecure（MySQL 5.7+）..." >&2; \
+        "$MYSQLD" --defaults-file="$SLAVE_CNF" --initialize-insecure --user=mysql; }
   fi
 
   # 5. 启动从库 3307；导入 dump；
@@ -263,10 +292,16 @@ SLAVEEOF
     done
     ss -lntp | grep ":${SLAVE_PORT}\s" || { echo "[FATAL] 从库 $SLAVE_PORT 未启动，请查看 /var/log/mysql-slave.log" >&2; exit 5; }
     echo "  从库已启动，设置从库 root 密码并导入 dump..."
-    # --initialize-insecure 只用于首次初始化；先通过本地 socket 无密码登录，再设置 .env 中的从库密码。
-    "$MYSQL" --protocol=socket --socket="$SLAVE_SOCKET" -uroot -e \
-      "ALTER USER 'root'@'localhost' IDENTIFIED BY '${SLAVE_PASSWORD}'; FLUSH PRIVILEGES;"
-    # 导入前先确保数据库存在（dump 里通常有 CREATE DATABASE，但防一手）。
+    # mysql_install_db 初始化的 MariaDB 5.5 root 默认无密码，先通过 socket 设置密码
+    "$MYSQL" --defaults-file="$SLAVE_CNF" -uroot -e \
+      "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${SLAVE_PASSWORD}'); \
+       SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('${SLAVE_PASSWORD}'); \
+       FLUSH PRIVILEGES;" 2>/dev/null || \
+      "$MYSQL" -uroot -e \
+        "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${SLAVE_PASSWORD}'); \
+         SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('${SLAVE_PASSWORD}'); \
+         FLUSH PRIVILEGES;"
+    # 导入前先确保数据库存在
     mysql_slave -e "CREATE DATABASE IF NOT EXISTS \`${SLAVE_DB}\` CHARACTER SET utf8mb4;"
     mysql_slave < "$DUMP_FILE"
     echo "  导入完成"
