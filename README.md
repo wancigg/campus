@@ -214,7 +214,7 @@ systemctl restart campus-bridge
 
 ### 2) 演示型主从复制（答辩老师必看 Showstopper）
 为了让答辩展示「主从复制 + binlog 同步」的真实机制，我们提供一套「同机 3307 从库」的一键部署脚本：
-`scripts/deploy_mysql_ms_demo.sh`（MySQL 5.7 / 8.0 已适配；dry-run 模式先预览再执行）。
+`scripts/deploy_mysql_ms_demo.sh`（MySQL 5.7+ / MariaDB 5.5+ 已适配；自动检测服务名 mariadb 或 mysqld；dry-run 模式先预览再执行）。
 
 **执行步骤（在 hadoop101 `/opt/campus-bridge`）**：
 ```bash

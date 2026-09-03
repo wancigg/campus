@@ -292,15 +292,13 @@ SLAVEEOF
     done
     ss -lntp | grep ":${SLAVE_PORT}\s" || { echo "[FATAL] 从库 $SLAVE_PORT 未启动，请查看 /var/log/mysql-slave.log" >&2; exit 5; }
     echo "  从库已启动，设置从库 root 密码并导入 dump..."
-    # mysql_install_db 初始化的 MariaDB 5.5 root 默认无密码，先通过 socket 设置密码
-    "$MYSQL" --defaults-file="$SLAVE_CNF" -uroot -e \
+    # mysql_install_db 初始化的 MariaDB 5.5 root@localhost 通常使用 auth_socket 插件
+    # 必须显式指定从库 socket 才能免密登录（否则可能连到主库 socket）
+    "$MYSQL" --socket="$SLAVE_SOCKET" -uroot -e \
       "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${SLAVE_PASSWORD}'); \
        SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('${SLAVE_PASSWORD}'); \
-       FLUSH PRIVILEGES;" 2>/dev/null || \
-      "$MYSQL" -uroot -e \
-        "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${SLAVE_PASSWORD}'); \
-         SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('${SLAVE_PASSWORD}'); \
-         FLUSH PRIVILEGES;"
+       FLUSH PRIVILEGES;" \
+      || { echo "[FATAL] 无法通过 socket 设置从库密码，请确认 $SLAVE_SOCKET 存在" >&2; exit 5; }
     # 导入前先确保数据库存在
     mysql_slave -e "CREATE DATABASE IF NOT EXISTS \`${SLAVE_DB}\` CHARACTER SET utf8mb4;"
     mysql_slave < "$DUMP_FILE"
