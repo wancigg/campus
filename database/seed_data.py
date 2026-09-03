@@ -207,7 +207,7 @@ def seed():
                 {"title": "VSCode必备插件推荐（前端向）",
                  "content": "作为前端开发重度用户，推荐几个提升效率的VSCode插件：\n🔧 GitLens — Git可视化，每一行代码都能看到谁写的\n🎨 Prettier — 代码格式化，保存自动排版\n🔍 Error Lens — 行内显示错误信息，不用hover\n📝 Markdown All in One — 写文档神器\n⚡ Thunder Client — 轻量级API测试，替代Postman\n🤖 GitHub Copilot — AI代码补全（学生免费！）\n大家还有什么好用的插件推荐？", "views": 3201, "pinned": False},
                 {"title": "Flask项目部署后500错误，求大佬帮忙看看",
-                 "content": "本地跑得好好的，部署到云服务器后就各种500。查了日志提示数据库连接问题：\n```\nsqlalchemy.exc.OperationalError: unable to open database file\n```\n用的是SQLite，是不是生产环境还是得换MySQL？另外Nginx反向代理的配置也不太确定。求有部署经验的同学指点一下，请喝奶茶！", "views": 678, "pinned": False},
+                 "content": "本地跑得好好的，部署到云服务器后就各种500。查了日志提示数据库连接问题：\n```\nsqlalchemy.exc.OperationalError: Can't connect to MySQL server on 'xxxx:3306'\n```\n用的是MySQL，是不是生产环境配置 .env 的 MYSQL_MASTER_HOST / PASSWORD 漏填了？另外Nginx反向代理的配置也不太确定。求有部署经验的同学指点一下，请喝奶茶！", "views": 678, "pinned": False},
                 {"title": "分享C语言课设——贪吃蛇（附源码）",
                  "content": "用C语言+EasyX图形库写了个贪吃蛇小游戏，功能包括：\n🐍 键盘方向键控制\n📈 速度随分数递增\n🏆 本地分数排行榜（文件存储）\n🎵 简单的音效反馈\n代码已开源到GitHub，注释详细适合新手参考。欢迎Star和PR！也欢迎大家分享自己的课设项目～", "views": 1543, "pinned": False},
             ],

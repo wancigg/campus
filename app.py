@@ -9,8 +9,6 @@ from extensions import db, login_manager
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    # 注入当前运行库模式：mysql=主库可用；sqlite=本地暂存（待 MySQL 恢复后可同步）
-    app.config.setdefault('DATABASE_MODE', 'sqlite')
 
     # 初始化扩展
     db.init_app(app)
@@ -388,7 +386,7 @@ if __name__ == '__main__':
     app = create_app()
     with app.app_context():
         db.create_all()
-        # 迁移：为 materials 表添加 views 列（SQLite 需手动执行）
+        # 迁移：为 materials 表添加 views 列（历史：老数据库可能没该列，MySQL ALTER IGNORE / 重复列忽略）
         try:
             from sqlalchemy import text
             db.session.execute(text("ALTER TABLE materials ADD COLUMN views INTEGER DEFAULT 0"))
@@ -474,7 +472,7 @@ if __name__ == '__main__':
             db.session.commit()
         except Exception:
             db.session.rollback()
-        # 迁移：为 textbooks 表添加新增列（SQLite 需手动执行）
+        # 迁移：为 textbooks 表添加新增列（历史：老数据库可能没这些列，重复列忽略）
         _textbook_migrations = [
             ('category', "VARCHAR(50) DEFAULT ''"),
             ('condition', "VARCHAR(50) DEFAULT ''"),

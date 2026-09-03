@@ -37,7 +37,7 @@ User 表按积分（points）从「萌新→新生→学弟学妹→学长学姐
 |---|---|
 | **后端框架** | Flask 3.1 + Jinja2 + Flask-SQLAlchemy 3.1 |
 | **前端样式** | HTML5 + Tailwind CSS + 原生 JavaScript（`static/js/main.js` + `animations.js`） |
-| **数据库** | **MySQL 5.7+ 优先**，启动时若无法连接**自动回退 SQLite**（无需额外装 MySQL 也能跑，见 config.py L18-L42） |
+| **数据库** | **强制 MySQL 5.7+（单主库模式）**，启动期连接失败直接报错退出，不再提供 SQLite 自动降级。如需演示「主从复制」见 `scripts/deploy_mysql_ms_demo.sh` 一节（Flask 永远只写/读主库，从库用于 SHOW SLAVE STATUS 演示）。 |
 | **AI 集成** | DeepSeek Chat API（deepseek-chat 模型，论坛 AI 摘要） |
 | **文件存储** | 本地磁盘 `/uploads/`（默认）/ 腾讯云 COS（填 `.env` 自动切换） |
 | **生产部署** | Gunicorn 23 + systemd（CentOS 7.4 已验证） |
@@ -64,12 +64,12 @@ User 表按积分（points）从「萌新→新生→学弟学妹→学长学姐
 ### 1. 配置环境变量
 复制 `.env.example` 为 `.env`（Windows 下手动改名），填入真实值：
 ```env
-# ===== 数据库：未填或 MySQL 不通自动回退 SQLite =====
-MYSQL_USER=root
-MYSQL_PASSWORD=
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_DATABASE=campus_bridge
+# ===== MySQL 主库（必填；未填/连接失败直接报错退出；兼容旧键 MYSQL_*） =====
+MYSQL_MASTER_HOST=127.0.0.1
+MYSQL_MASTER_PORT=3306
+MYSQL_MASTER_USER=root
+MYSQL_MASTER_PASSWORD=your_password
+MYSQL_MASTER_DATABASE=campus_bridge
 
 # ===== Flask 密钥（生产必改） =====
 SECRET_KEY=change-me-to-random-string
@@ -100,9 +100,9 @@ pip install -r requirements.txt
 
 ### 3. 初始化数据库 + 种子数据
 ```bash
-python seed_data.py
+python database/seed_data.py
 ```
-脚本会自动执行：SQLAlchemy `db.create_all()` 建表 → 分区 / 管理员 / 示例资料 / 示例帖子 / 示例竞赛 / 示例二手 逐条插入。SQLite 模式下数据库文件自动创建为 `./campus_bridge.db`。
+脚本会自动执行：SQLAlchemy `db.create_all()` 建表 → 分区 / 管理员 / 示例资料 / 示例帖子 / 示例竞赛 / 示例二手 逐条插入。架构已移除 SQLite fallback，必须确保 `.env` 主库可连。
 
 ### 4. 启动开发服务器
 ```bash
@@ -143,14 +143,16 @@ systemctl restart campus-bridge
 ```
 项目/
 ├── app.py                   # Flask 主入口，create_app() + 注册 9 蓝图 + 自动建表迁移 + 403/404/500 错误页
-├── config.py                # 配置加载（MySQL 优先，不通自动回退 SQLite）
+├── config.py                # 配置加载（强制 MySQL 单主库；MYSQL_MASTER_* 优先、MYSQL_* 兼容旧部署）
 ├── extensions.py            # Flask 扩展初始化（db / login_manager）
 ├── models.py                # 10 个 SQLAlchemy 模型（User 10 级等级表 / Post 点赞收藏评论图片关系 / ...）
 ├── storage.py               # 文件存储抽象层（本地磁盘 ↔ 腾讯云 COS 可切换）
 ├── decorators.py            # 权限装饰器（@login_required / @admin_required）
 ├── forms.py                 # WTForms 表单校验
-├── seed_data.py             # 自动建表 + 种子数据（真实部署 User=21 / Post=63 等）
-├── db_init.sql              # 备用：MySQL 手工建表 SQL
+│
+├── database/                # ⭐ 数据库类文件专属目录（见 refactor: 根目录整理）
+│   ├── seed_data.py         # 自动建表 + 种子数据（真实部署 User=24 / Post=64 等）
+│   └── db_init.sql          # 备用：MySQL 手工建表 SQL
 │
 ├── routes_auth.py           # 用户认证
 ├── routes_materials.py      # 学习资料
@@ -200,18 +202,72 @@ systemctl restart campus-bridge
 
 ---
 
+## 🗄️ 数据库架构说明（单 MySQL 主库 + 可选 3307 演示型主从）
+
+> 2026.09 架构升级：**移除了 SQLite 自动降级 / sync_database.py 回灌脚本**。
+> 项目现在只支持「MySQL 单主库」，任何 `.env` 连接配置错误都会在启动期直接抛 `RuntimeError: MySQL 主库连接失败（已禁用 SQLite 降级）`，
+> 避免「悄悄降级到 SQLite 结果大盘 count=0」一类生产事故。
+
+### 1) Flask 生产永远只读写「主库 3306」
+- `.env` 推荐填写 `MYSQL_MASTER_HOST/PORT/USER/PASSWORD/DATABASE`，同时兼容旧键 `MYSQL_*`
+- `.env.example` 里还有可选的 `MYSQL_SLAVE_*`，只是部署从库时给脚本读取，**Flask 代码从不读取 MYSQL_SLAVE_*，不会把写请求打到从库**。
+
+### 2) 演示型主从复制（答辩老师必看 Showstopper）
+为了让答辩展示「主从复制 + binlog 同步」的真实机制，我们提供一套「同机 3307 从库」的一键部署脚本：
+`scripts/deploy_mysql_ms_demo.sh`（MySQL 5.7 / 8.0 已适配；dry-run 模式先预览再执行）。
+
+**执行步骤（在 hadoop101 `/opt/campus-bridge`）**：
+```bash
+# (可选) 0. 先 dry-run 预览 7 步会做什么 + CHANGE MASTER File/Pos 是怎么从 dump 头 22 行取出来的：
+sudo bash scripts/deploy_mysql_ms_demo.sh --dry-run
+
+# 1. 真实执行（在执行前确保 /opt/campus-bridge/.env 已填：MYSQL_MASTER_PASSWORD + MYSQL_REPL_PASSWORD）
+sudo bash scripts/deploy_mysql_ms_demo.sh
+
+# 2. 出问题或展示完毕想停掉从库（主库完全不受影响）：
+sudo bash scripts/deploy_mysql_ms_demo.sh rollback
+```
+
+**答辩现场 15 秒演示脚本**（在 hadoop101 终端粘贴就能赢老师掌声）：
+```bash
+# A. SHOW SLAVE STATUS 三行关键指标（IO/SQL 双 Yes + Seconds_Behind≈0）
+MYSQL_PWD="$(grep ^MYSQL_SLAVE_PASSWORD /opt/campus-bridge/.env | cut -d= -f2)" \
+  mysql -h127.0.0.1 -P3307 \
+        -u"$(grep ^MYSQL_SLAVE_USER /opt/campus-bridge/.env | cut -d= -f2)" \
+        -e "SHOW SLAVE STATUS\G" | grep -E "Slave_IO_Running|Slave_SQL_Running|Seconds_Behind_Master"
+
+# B. 主库 INSERT 一行 → 4s 内在从库查到（视觉冲击：实时同步）
+MYSQL_MASTER_PWD="$(grep ^MYSQL_MASTER_PASSWORD /opt/campus-bridge/.env | cut -d= -f2)"
+MYSQL_SLAVE_PWD="$(grep ^MYSQL_SLAVE_PASSWORD /opt/campus-bridge/.env | cut -d= -f2)"
+MYSQL_MASTER_USER="$(grep ^MYSQL_MASTER_USER /opt/campus-bridge/.env | cut -d= -f2)"
+MYSQL_SLAVE_USER="$(grep ^MYSQL_SLAVE_USER /opt/campus-bridge/.env | cut -d= -f2)"
+MYSQL_PWD="$MYSQL_MASTER_PWD" mysql -h127.0.0.1 -P3306 -u"$MYSQL_MASTER_USER" -e "
+  INSERT INTO campus_bridge.competitions (title, description, status, max_team, deadline, created_at)
+  VALUES ('[主从同步测试] 蓝桥杯校内选拔', '2026.09 演示 binlog 复制，5s 内在 3307 从库可见', 'open', 3, DATE_ADD(NOW(), INTERVAL 10 DAY), NOW());
+  DO SLEEP(4);
+"
+MYSQL_PWD="$MYSQL_SLAVE_PWD" mysql -h127.0.0.1 -P3307 -u"$MYSQL_SLAVE_USER" -e "
+  SELECT id, title, status, created_at FROM campus_bridge.competitions ORDER BY id DESC LIMIT 1;
+"
+```
+
+**预期答辩回答话术（你照着说）**：
+> 「我们先用 Flask+Gunicorn 全量读写主库，保证一致性；再在同一台 VM 上单独开一个 MySQL 3307 实例做从库演示 ROW 格式 binlog 异步复制。
+> 主库 FTWRL + mysqldump --master-data=2 把 CHANGE MASTER 坐标自动写进 dump 头，从库导入快照后 START SLAVE，IO/SQL 两个线程都是 Yes，Seconds_Behind_Master 稳定在 0-1 秒。
+> Flask 业务层没有做读写分离，避免写后读不一致，但是数据库层已经具备了容灾和只读扩展的基础，后续如果上生产可以用 ProxySQL/MaxScale 再加透明读写分离。」
+
+---
+
 ## 🏭 生产部署（CentOS 7.4 已验证）
 
 ### 1. 真实部署路径与数据库位置
 ```
 /opt/campus-bridge/
 ├── app.py  routes_*.py  models.py  config.py  ...
-├── .env           # 生产环境变量（含真实 DEEPSEEK_API_KEY）
-├── campus_bridge.db  ← ⚠️ SQLite 模式下的实际数据库
-│                       WorkingDirectory=/opt/campus-bridge 决定相对路径！
-│                       gunicorn 必须从该目录启动，否则会连空库出现「大盘全 0」
-├── uploads/        # 用户上传资料/帖子图片/聊天图片
-└── venv/           # Python 3.9.20 虚拟环境
+├── .env           # 生产环境变量（MYSQL_MASTER_PASSWORD/DEEPSEEK_API_KEY 等真实值，不入 git）
+├── database/      # SQL 脚本与种子脚本（campus_bridge.db 已移除，生产只用 MySQL 主库）
+├── uploads/       # 用户上传资料/帖子图片/聊天图片
+└── .venv/         # Python 3.9.20 虚拟环境
 ```
 
 ### 2. Gunicorn systemd 服务：`/etc/systemd/system/campus-bridge.service`
@@ -267,8 +323,9 @@ server {
 ### 4. 常见坑位清单
 | 坑 | 症状 | 解法 |
 |---|---|---|
+| **MySQL 未填/密码错误** | 启动期直接报 `RuntimeError: MySQL 主库连接失败（已禁用 SQLite 降级）` | 检查 .env 的 MYSQL_MASTER_PASSWORD / MYSQL_MASTER_HOST；或用兼容旧键 MYSQL_USER / MYSQL_PASSWORD 回填 |
 | **__pycache__ 读旧字节码** | 改了 Python 文件重启还显示旧逻辑 | `find ... -name __pycache__ -exec rm -rf {} +` |
-| **SQLite 相对路径连空库** | 首页大盘 6 张卡全 0（数据库明明有 21 用户） | WorkingDirectory 必须设成 `/opt/campus-bridge` |
+| **大盘出现用户数=0** | MySQL campus_bridge 库为空或连上了错误库 | `mysql -uroot -p -e "USE campus_bridge; SELECT COUNT(*) FROM users;"` 校验；并检查 systemd 服务 WorkingDirectory 仍然是 `/opt/campus-bridge` |
 | **旧 base.html 搜索框只刷新** | 导航栏输入搜索词回车停在当前页 | SCP 最新 `templates/base.html` 到服务器（已包 `<form action=url_for('search') method=GET>`） |
 | **500 页面伪装成首页** | 访问 `/forum/` 视觉上=首页（实际 500） | 已修！app.py L220-249 errorhandler 改成独立渐变 500 卡片 |
 | **Post.images eager loading 报错** | 论坛 500：`'Post.images' does not support object population` | 已修！models.py images 关系 `lazy='dynamic'` → `lazy='select'` |

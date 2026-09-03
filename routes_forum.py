@@ -392,7 +392,7 @@ def create():
 @forum_bp.route('/upload-image', methods=['POST'])
 @login_required
 def upload_image():
-    """AJAX 上传帖子图片，返回文件名供前端暂存"""
+    """AJAX 上传帖子图片，返回文件名供前端提交时入库（上传至本地磁盘/COS）"""
     file = request.files.get('file')
     if not file or not file.filename:
         return jsonify({'error': '请选择图片'}), 400
