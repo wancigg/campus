@@ -374,8 +374,8 @@ EOSQL
 
   # 主库写入后，从库查询（把密码和账号替换为 .env 中的值）
   MYSQL_PWD='主库密码' mysql -h127.0.0.1 -P3306 -u'主库用户' -e \
-    "INSERT INTO campus_bridge.competitions (title, description, status, max_team, deadline, created_at)
-     VALUES ('主从同步测试赛','演示 binlog 复制','open',3,DATE_ADD(NOW(), INTERVAL 10 DAY),NOW());"
+    "INSERT INTO campus_bridge.competitions (owner_id, title, description, status, team_size, deadline, created_at)
+     VALUES (1, '主从同步测试赛','演示 binlog 复制','open',3,DATE_ADD(NOW(), INTERVAL 10 DAY),NOW());"
   sleep 4
   MYSQL_PWD='从库密码' mysql -h127.0.0.1 -P3307 -u'从库用户' -e \
     "SELECT id,title,status,created_at FROM campus_bridge.competitions ORDER BY id DESC LIMIT 1;"
